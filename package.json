@@ -1,7 +1,8 @@
 {
   "name": "data_scraping_api",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "proxy": "http://localhost:5000",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,5 +21,18 @@
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.4",
     "vite": "^4.0.0"
-  }
+  },
+  "main": "vite.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agustin-Graciano/data_scraping_api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Agustin-Graciano/data_scraping_api/issues"
+  },
+  "homepage": "",
+  "description": ""
 }
