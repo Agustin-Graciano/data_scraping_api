@@ -13,10 +13,10 @@ const scrapeFunction = async (url) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(url);
-
-    const [productHeading] = await page.$(
-      '//*[@id="shopify-section-product-template"]/section/div/div[2]/div/div[2]/div/div[2]/div/h1'
-    );
+    const productHeading = await page.waitForSelector(".product-meta__title");
+    // const [productHeading] = await page.$(
+    //   '//*[@id="shopify-section-product-template"]/section/div/div[2]/div/div[2]/div/div[2]/div/h1'
+    // );
     const innerTxt = await productHeading.getProperty("textContent");
     const headingTxt = await innerTxt.jsonValue();
 
