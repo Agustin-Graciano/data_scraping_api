@@ -20,29 +20,28 @@ function App() {
       <>
         <NavBar />
       </>
-      <div class="flex justify-center">
-        <div class="w-3/5">
-          <div class="mt-10 text-xl text-center">
+      <div className="flex justify-center">
+        <div className="w-3/5">
+          <div className="mt-10 text-xl text-center">
             Select wanted delivery date:
-            <label className="inline-block">
-              <input
-                type="date"
-                name="date"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
-                placeholder="select date..."
-              />
-            </label>
+            <label className="inline-block" />
+            <input
+              type="date"
+              name="date"
+              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
+              placeholder="select date..."
+            />
           </div>
 
           <div>
-            <label class="inline-block ml-20 mt-10">
-              <input
-                type="string"
-                name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
-                placeholder="Enter component name..."
-              />
-            </label>
+            <label class="inline-block ml-20 mt-10" />
+            <input
+              type="string"
+              name="Component"
+              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
+              placeholder="Enter component name..."
+            />
+
             <label class="inline-block ml-20 mt-10">
               <input
                 type="int"
