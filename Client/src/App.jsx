@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import NavBar from "./components/NavBar";
+import { Button } from "@material-tailwind/react";
 
 function App() {
   const [data, setData] = useState({});
 
   useEffect(() => {
-    fetch("https://localhost:5000/api")
+    fetch("http://localhost:5000/api")
       .then((response) => response.json())
       .then((data) => {
         setData(data);
@@ -28,7 +29,7 @@ function App() {
             <input
               type="date"
               name="date"
-              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
+              className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
               placeholder="select date..."
             />
           </div>
@@ -36,10 +37,10 @@ function App() {
           <div>
             <label class="inline-block ml-20 mt-10" />
             <input
-              type="string"
-              name="Component"
-              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
-              placeholder="Enter component name..."
+             type="string"
+             name="Component"
+             className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+             placeholder="Enter component name..."
             />
 
             <label class="inline-block ml-20 mt-10">
@@ -66,7 +67,7 @@ function App() {
               <input
                 type="string"
                 name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 w-full rounded-md sm:text-sm focus:ring-1"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                 placeholder="Enter component name..."
               />
             </label>
@@ -94,7 +95,7 @@ function App() {
               <input
                 type="string"
                 name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 w-full focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                 placeholder="Enter component name..."
               />
             </label>
@@ -146,9 +147,7 @@ function App() {
           </label>
 
           <div class="flex justify-center mt-5 mb-5">
-            <button className="py-2 px-8 bg-eggplant text-white hover:bg-eg-eggplant rounded drop-shadow-lg">
-              Send Quote
-            </button>
+             <Button class='m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg'>Send Quote</Button>
           </div>
         </div>
       </div>
