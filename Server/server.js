@@ -49,6 +49,7 @@ let scrapedData;
 
 const searchScraping = async () => {
   try {
+    //Launchin puppeteer
     const browser = await puppeteer.launch({
       args: [
         "--no-sandbox",
@@ -57,7 +58,7 @@ const searchScraping = async () => {
         "--window-size=1920x1080",
       ],
     });
-    const [page] = await browser.pages();
+    const page = await browser.newPage();
     await page.setRequestInterception(true);
     page.on("request", (interSeptedRequest) => {
       //Still not sure if it is okay to be "!==" instead of "==="
@@ -69,15 +70,18 @@ const searchScraping = async () => {
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3419.0 Safari/537.36"
     );
     await page.goto("https://www.google.com/", { waitUntil: "networkidle2" });
+    //Waiting for the search bar on the page to load and get in visability
     await page.waitForSelector('input[aria-label="Search"]', { visable: true });
+    //Targetinng an element with the "type" method and specifying what to type in
     await page.type('input[aria-label="Search"]', "Ali express");
     await Promise.all([
       page.waitForNavigation({ waitUntil: "domcontentloaded" }),
       page.keyboard.press("Enter"),
     ]);
+    //waiting untill the needed element (in this case the search results are visible)
     await page.waitForSelector(".LC20lb", { visible: true });
 
-    const scrappedResult = await pahe.$$eval(".LC20lb", (els) =>
+    const scrappedResult = await page.$$eval(".LC20lb", (els) =>
       els.map((e) => ({ title: e.innerText, link: e.parentNode.href }))
     );
     console.log(scrappedResult);
