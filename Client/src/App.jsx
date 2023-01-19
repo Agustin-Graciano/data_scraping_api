@@ -37,10 +37,10 @@ function App() {
           <div>
             <label class="inline-block ml-20 mt-10" />
             <input
-             type="string"
-             name="Component"
-             className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-             placeholder="Enter component name..."
+              type="string"
+              name="Component"
+              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+              placeholder="Enter component name..."
             />
 
             <label class="inline-block ml-20 mt-10">
@@ -147,7 +147,9 @@ function App() {
           </label>
 
           <div class="flex justify-center mt-5 mb-5">
-             <Button class='m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg'>Send Quote</Button>
+            <Button class="m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg">
+              Send Quote
+            </Button>
           </div>
         </div>
       </div>
