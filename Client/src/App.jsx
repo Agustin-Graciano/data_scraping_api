@@ -146,11 +146,68 @@ function App() {
             />
           </label>
 
+          <form method="post" action="http://localhost:5000/pyth">
+          <div>
+            <label class="inline-block ml-20 mt-10" />
+            <input
+              type="float"
+              name="Price"
+              className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+              placeholder="Price"
+            />
+            <div className="inline-block text-lg ml-4"></div>
+
+            <label class="inline-block ml-20 mt-10">
+              <input
+                type="int"
+                name="Amount"
+                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="Amount"
+              />
+            </label>
+            <label className="inline-block ml-20 mt-10">
+              <input
+                type="string"
+                name="Currency"
+                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="Currency in 3 letters"
+              />
+            </label>
+            <label className="inline-block ml-20 mt-10">
+              <input
+                type="string"
+                name="OutsideEbits"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="OutsideEbits"
+              />
+            </label>
+            <label className="inline-block ml-20 mt-10">
+              <input
+                type="string"
+                name="OutsideEU"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="OutsideEU"
+              />
+            </label>
+            </div>
+
+              <div className="mt-10 text-xl text-center">
+                  Select wanted delivery date:
+                  <label className="inline-block" />
+                  <input
+                      type="date"
+                      name="Date"
+                      className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                      placeholder="select date..."
+                  />
+              </div>
+
           <div class="flex justify-center mt-5 mb-5">
-            <Button class="m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg">
+            <Button type="submit" value="submit" class="m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg">
               Send Quote
             </Button>
           </div>
+          </form>
         </div>
       </div>
     </>

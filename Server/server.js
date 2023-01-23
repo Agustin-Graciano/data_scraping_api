@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "*"
   })
 );
 
@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 //Data scraping
-let scrapedData;
+//let scrapedData;
 // const scrapeFunction = async (url) => {
 //   try {
 //     const browser = await puppeteer.launch();
@@ -47,6 +47,7 @@ let scrapedData;
 //   "https://ebits.dk/collections/mikrokontrollere/products/arduino-nano-r3"
 // );
 
+/*
 const searchScraping = async () => {
   try {
     //Launchin puppeteer
@@ -66,10 +67,15 @@ const searchScraping = async () => {
         ? interSeptedRequest.abort()
         : interSeptedRequest.continue();
     });
+    //Setting the user agent to be custom, so the google server does not kick me due to using a headless browser
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3419.0 Safari/537.36"
     );
-    await page.goto("https://www.google.com/", { waitUntil: "networkidle2" });
+    //Assigning the location the page is supposed to go to
+    await page.goto(
+      "https://www.banggood.com/?utm_source=google&utm_medium=cpc_brand&utm_content=all&utm_campaign=aceng-skw-ads-eu-bg-rsa&ad_id=343808804361&gclid=Cj0KCQiA8aOeBhCWARIsANRFrQHxlVfwJXuguVvWFuIrt8TbpIVoQavek9HRFY-10SVEvlF2jIv-PJ4aAvDPEALw_wcB",
+      { waitUntil: "networkidle2" }
+    );
     //Waiting for the search bar on the page to load and get in visability
     await page.waitForSelector('input[aria-label="Search"]', { visable: true });
     //Targetinng an element with the "type" method and specifying what to type in
@@ -94,43 +100,43 @@ const searchScraping = async () => {
 };
 
 searchScraping();
-
+*/
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-  res.json({ name: "Bill", age: "99", data: scrapedData });
+  res.json({ name: "Bill", age: "99", /*data: scrapedData*/ });
 });
 
 //Connection to python
-app.post("/pyth", (req, res, next) => {
-  var Price = Number(req.body.Price);
-  var OutsideEbits = String(req.body.OutsideEbits);
-  var OutsideEU = String(req.body.OutsideEU);
-  var Currency = String(req.body.Currency);
+app.post("/pyth", (req, res) => {
+  var price = Number(req.body.Price);
+  var amount = Number(req.body.Amount);
+  var currency = String(req.body.Currency);
+  var outsideEbits = String(req.body.OutsideEbits);
+    var outsideEU = String(req.body.OutsideEU);
+    var dateToBeDelivered = String(req.body.Date);
   var dataToSend = String();
-  console.log(req.body);
-  console.log(
-    `Received this: ${Price}, ${OutsideEbits}, ${OutsideEU}, ${Currency}`
-  );
+  console.log("Received request with body: ", req.body);
   const python3 = spawn("python", [
     "Calculator.py",
-    Price,
-    OutsideEbits,
-    OutsideEU,
-    Currency,
+    price,
+    amount,
+    currency,
+    outsideEbits,
+    outsideEU,
+    dateToBeDelivered
   ]);
   python3.stdout.on("data", function (data) {
-    dataToSend = data.toString();
+      dataToSend = data.toString();
     const formatter = new Intl.NumberFormat("dk-DK", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
     dataToSend = formatter.format(dataToSend);
-    console.log(`Heres the data, sir: ${dataToSend}`);
+    console.log(`Results: ${dataToSend}`);
   });
 
   // in close event we are sure that stream from child process is closed
   python3.on("close", (code) => {
-    console.log(`child process close all stdio with code ${code}`);
     // send data to browser
     res.end(dataToSend);
   });
