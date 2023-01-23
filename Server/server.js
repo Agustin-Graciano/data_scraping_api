@@ -66,10 +66,15 @@ const searchScraping = async () => {
         ? interSeptedRequest.abort()
         : interSeptedRequest.continue();
     });
+    //Setting the user agent to be custom, so the google server does not kick me due to using a headless browser
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3419.0 Safari/537.36"
     );
-    await page.goto("https://www.google.com/", { waitUntil: "networkidle2" });
+    //Assigning the location the page is supposed to go to
+    await page.goto(
+      "https://www.banggood.com/?utm_source=google&utm_medium=cpc_brand&utm_content=all&utm_campaign=aceng-skw-ads-eu-bg-rsa&ad_id=343808804361&gclid=Cj0KCQiA8aOeBhCWARIsANRFrQHxlVfwJXuguVvWFuIrt8TbpIVoQavek9HRFY-10SVEvlF2jIv-PJ4aAvDPEALw_wcB",
+      { waitUntil: "networkidle2" }
+    );
     //Waiting for the search bar on the page to load and get in visability
     await page.waitForSelector('input[aria-label="Search"]', { visable: true });
     //Targetinng an element with the "type" method and specifying what to type in
