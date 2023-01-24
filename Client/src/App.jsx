@@ -5,29 +5,33 @@ import { Button } from "@material-tailwind/react";
 
 function App() {
   const [data, setData] = useState([]);
-
+  const filterData = (data) => {
+    const filterResult = data.filter(
+      (object) => object.title == "2.54mm 1*40P Color Single Row Needle"
+    );
+    console.log(filterResult);
+  };
   useEffect(() => {
     const fetchData = async () => {
       await fetch("http://localhost:5000/api")
         .then((response) => response.json())
         .then((data) => {
           setData(data);
+          console.log(data[9].title);
         });
+      filterData(data);
     };
 
     fetchData();
   }, []);
 
-  const filterData = (data) => {
-    const filterResult = data.filter(
-      (object) =>
-        object.title.toLowerCase() ==
-        "2.54mm 1*40P Color Single Row Needle".toLowerCase()
-    );
-    console.log(filterResult);
-  };
-  console.log(data[9]);
-  filterData(data);
+  // const filterData = (data) => {
+  //   const filterResult = data.filter(
+  //     (object) => object.title == "2.54mm 1*40P Color Single Row Needle"
+  //   );
+  //   console.log(filterResult);
+  // };
+  console.log(data[12]);
   return (
     <>
       <>
