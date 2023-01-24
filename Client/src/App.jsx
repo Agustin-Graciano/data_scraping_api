@@ -27,13 +27,11 @@ function App() {
   // console.log(fiterData(data, "UNO R3 Mega328P CH340 Development Board"));
 
   const filterData = (data, searchValue) => {
-    // const filterResult = data.filter(
-    //   (object) => object === searchValue.toLowerCase()
-    // );
+     const filterResult = data.filter(
+       (object) => object === searchValue.toLowerCase()
+     );
   };
-  filterData;
-
-  console.log(data);
+    
 
   console.log(filterData(data, "2.54mm 1*40P Color Single Row Needle"));
   return (

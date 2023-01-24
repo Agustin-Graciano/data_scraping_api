@@ -203,16 +203,22 @@ const scrapeAliExpress = () => {
     });
 };
 let scrapedData = [];
-scrapedData = scrapedDataGoogle.concat(scrapedDataJHElektronika);
 
 scrapeAliExpress();
 scrapeGoogleSearch();
 
-console.log(scrapedData);
+
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-  res.json(scrapedData);
+    //console.log("Testing...: ", scrapedDataJHElektronika);
+    //console.log("Testing2...: ", scrapedDataGoogle);
+    if(scrapedData.length == 0)
+    {
+        scrapedData = scrapedDataGoogle.concat(scrapedDataJHElektronika);
+    }
+    //console.log("testing3", scrapedData);
+    res.json(scrapedData);
 });
 
 //Connection to python
