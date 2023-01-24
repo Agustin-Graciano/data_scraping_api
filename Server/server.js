@@ -213,9 +213,8 @@ scrapeGoogleSearch();
 app.get("/api", (req, res) => {
     //console.log("Testing...: ", scrapedDataJHElektronika);
     //console.log("Testing2...: ", scrapedDataGoogle);
-    if(scrapedData.length == 0)
-    {
-        scrapedData = scrapedDataGoogle.concat(scrapedDataJHElektronika);
+    if(scrapedData.length == 0) {
+        scrapedData = scrapedDataGoogle[0].concat(scrapedDataJHElektronika[0]);
     }
     //console.log("testing3", scrapedData);
     res.json(scrapedData);
