@@ -4,7 +4,7 @@ import NavBar from "./components/NavBar";
 import { Button } from "@material-tailwind/react";
 
 function App() {
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:5000/api")
@@ -16,6 +16,26 @@ function App() {
 
   console.log(data);
 
+  // const fiterData = (data, input) => {
+  //   data.filter((object) =>
+  //     object
+  //       .Object(object)
+  //       .some((key) => key[o].toLowerCase().includes(input.toLowerCase()))
+  //   );
+  // };
+
+  // console.log(fiterData(data, "UNO R3 Mega328P CH340 Development Board"));
+
+  const filterData = (data, searchValue) => {
+    // const filterResult = data.filter(
+    //   (object) => object === searchValue.toLowerCase()
+    // );
+  };
+  filterData;
+
+  console.log(data);
+
+  console.log(filterData(data, "2.54mm 1*40P Color Single Row Needle"));
   return (
     <>
       <>
