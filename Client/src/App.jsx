@@ -16,14 +16,17 @@ function App() {
 
   console.log(data);
 
-  const filterData = (data, searchValue) => {
-     const filterResult = data.filter(
-       (object) => object === searchValue.toLowerCase()
-     );
+  const filterData = (data) => {
+    console.log(data[7].title);
+    const filterResult = data.filter(
+      (object) =>
+        object.title.toLowerCase() ==
+        "2.54mm 1*40P Color Single Row Needle".toLowerCase()
+    );
+    console.log(filterResult);
   };
-    
 
-  console.log(filterData(data, "2.54mm 1*40P Color Single Row Needle"));
+  filterData(data);
   return (
     <>
       <>
