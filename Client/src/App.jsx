@@ -7,7 +7,8 @@ function App() {
   const [data, setData] = useState([]);
   const filterData = (data) => {
     const filterResult = data.filter(
-      (object) => object.title == "2.54mm 1*40P Color Single Row Needle"
+      (object) =>
+        object.title == "Læs kundernes anmeldelser af www.aliexpress.com"
     );
     console.log(filterResult);
   };
@@ -31,7 +32,7 @@ function App() {
   //   );
   //   console.log(filterResult);
   // };
-  console.log(data[12]);
+  console.log(data[1]);
   return (
     <>
       <>
