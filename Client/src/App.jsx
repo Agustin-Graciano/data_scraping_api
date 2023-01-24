@@ -7,17 +7,18 @@ function App() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api")
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data);
-      });
+    const fetchData = async () => {
+      await fetch("http://localhost:5000/api")
+        .then((response) => response.json())
+        .then((data) => {
+          setData(data);
+        });
+    };
+
+    fetchData();
   }, []);
 
-  console.log(data);
-
   const filterData = (data) => {
-    console.log(data[7].title);
     const filterResult = data.filter(
       (object) =>
         object.title.toLowerCase() ==
@@ -25,7 +26,7 @@ function App() {
     );
     console.log(filterResult);
   };
-
+  console.log(data[9]);
   filterData(data);
   return (
     <>
