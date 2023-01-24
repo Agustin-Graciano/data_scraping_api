@@ -208,31 +208,30 @@ scrapedData = scrapedDataGoogle.concat(scrapedDataJHElektronika);
 scrapeAliExpress();
 scrapeGoogleSearch();
 
-searchScraping();
+console.log(scrapedData);
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-  res.json({ name: "Bill", age: "99", data: scrapedData });
+  res.json(scrapedData);
 });
 
 //Connection to python
-app.post("/pyth", (req, res) => {
-  var price = Number(req.body.Price);
-  var amount = Number(req.body.Amount);
-  var currency = String(req.body.Currency);
-  var outsideEbits = String(req.body.OutsideEbits);
-  var outsideEU = String(req.body.OutsideEU);
-  var dateToBeDelivered = String(req.body.Date);
+app.post("/pyth", (req, res, next) => {
+  var Price = Number(req.body.Price);
+  var OutsideEbits = String(req.body.OutsideEbits);
+  var OutsideEU = String(req.body.OutsideEU);
+  var Currency = String(req.body.Currency);
   var dataToSend = String();
-  console.log("Received request with body: ", req.body);
+  console.log(req.body);
+  console.log(
+    `Received this: ${Price}, ${OutsideEbits}, ${OutsideEU}, ${Currency}`
+  );
   const python3 = spawn("python", [
     "Calculator.py",
-    price,
-    amount,
-    currency,
-    outsideEbits,
-    outsideEU,
-    dateToBeDelivered,
+    Price,
+    OutsideEbits,
+    OutsideEU,
+    Currency,
   ]);
   python3.stdout.on("data", function (data) {
     dataToSend = data.toString();
@@ -241,11 +240,12 @@ app.post("/pyth", (req, res) => {
       maximumFractionDigits: 2,
     });
     dataToSend = formatter.format(dataToSend);
-    console.log(`Results: ${dataToSend}`);
+    console.log(`Heres the data, sir: ${dataToSend}`);
   });
 
   // in close event we are sure that stream from child process is closed
   python3.on("close", (code) => {
+    console.log(`child process close all stdio with code ${code}`);
     // send data to browser
     res.end(dataToSend);
   });
