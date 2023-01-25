@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+      origin: "*"
   })
 );
 
@@ -122,7 +122,7 @@ const scrapeGoogleSearch = () => {
   return unirest
     .get("https://www.google.com/search?q=AliExpress+&sxsrf")
     .headers({
-      "User-Agent": `${user_agent}`,
+      "User-Agent": `${user_agent}`
     })
     .then((response) => {
       let $ = cheerio.load(response.body);
@@ -211,46 +211,44 @@ scrapeGoogleSearch();
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-    //console.log("Testing...: ", scrapedDataJHElektronika);
-    //console.log("Testing2...: ", scrapedDataGoogle);
     if(scrapedData.length == 0) {
         scrapedData = scrapedDataGoogle[0].concat(scrapedDataJHElektronika[0]);
     }
-    //console.log("testing3", scrapedData);
     res.json(scrapedData);
 });
 
 //Connection to python
 app.post("/pyth", (req, res, next) => {
-  var Price = Number(req.body.Price);
-  var OutsideEbits = String(req.body.OutsideEbits);
-  var OutsideEU = String(req.body.OutsideEU);
-  var Currency = String(req.body.Currency);
+    var price = Number(req.body.Price);
+    var amount = Number(req.body.Amount);
+    var currency = String(req.body.Currency);
+    var outsideEbits = String(req.body.OutsideEbits);
+    var outsideEU = String(req.body.OutsideEU);
+    var dateToBeDelivered = String(req.body.Date);
   var dataToSend = String();
-  console.log(req.body);
-  console.log(
-    `Received this: ${Price}, ${OutsideEbits}, ${OutsideEU}, ${Currency}`
-  );
+    console.log(req.body);
+
   const python3 = spawn("python", [
     "Calculator.py",
-    Price,
-    OutsideEbits,
-    OutsideEU,
-    Currency,
+    price,
+    amount,
+    currency,
+    outsideEbits,
+    outsideEU,
+    dateToBeDelivered
   ]);
   python3.stdout.on("data", function (data) {
     dataToSend = data.toString();
     const formatter = new Intl.NumberFormat("dk-DK", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
-    dataToSend = formatter.format(dataToSend);
-    console.log(`Heres the data, sir: ${dataToSend}`);
+      dataToSend = formatter.format(dataToSend);
+      console.log(`Results: ${dataToSend}`);
   });
 
   // in close event we are sure that stream from child process is closed
   python3.on("close", (code) => {
-    console.log(`child process close all stdio with code ${code}`);
     // send data to browser
     res.end(dataToSend);
   });

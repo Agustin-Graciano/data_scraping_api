@@ -5,25 +5,68 @@ import { Button } from "@material-tailwind/react";
 
 function App() {
   const [data, setData] = useState([]);
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api")
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data);
-      });
+    var [formDate, setformDate] = useState('');
+    var [formResult, setformResult] = useState('');
+    
+  var Promise;
+  const WebScrapeGet = async () => { 
+      fetch("http://localhost:5000/api")
+          .then(async (response) => response.json())
+          .then(async (data) => {
+              Promise = setData(data);
+              console.log(data[9].title);
+          });
+    }
+    const PostForm = () => {
+      fetch("http://localhost:5000/pyth",
+          {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  "Price":1200, 
+                  "Amount":24, 
+                  "Currency":'USD', 
+                  "OutsideEbits":'True',
+                  "OutsideEU":'True',
+                  "Date":formDate
+              })
+          }).then((response) => response.text())
+          .then((formResult) => {
+              setformResult(formResult);
+              console.log("Received: ", formResult);
+          });
+      }
+    useEffect(() => {
+      WebScrapeGet();
   }, []);
+  var handlePost = (event) => {
+      event.preventDefault();
+      console.log("Sent date: ", formDate);
+      PostForm();
+  }
+  var handleChange = (event) => {
+      setformDate(event.target.value);
+  }
 
-  console.log(data);
+    /*
+  await WebScrapeGet;
+  if (WebScrapeGet.status == 200) {
+      console.log("Just to check.", data[8].title);
+  }
+  */
 
-  const filterData = (data, searchValue) => {
+    
+   
+    const filterData = (data, searchValue) => {
      const filterResult = data.filter(
        (object) => object === searchValue.toLowerCase()
      );
-  };
-    
+    };
 
-  console.log(filterData(data, "2.54mm 1*40P Color Single Row Needle"));
+    
+    
   return (
     <>
       <>
@@ -153,8 +196,6 @@ function App() {
               placeholder="Phone number"
             />
           </label>
-
-          <form method="post" action="http://localhost:5000/pyth">
             <div>
               <label class="inline-block ml-20 mt-10" />
               <input
@@ -199,12 +240,15 @@ function App() {
               </label>
             </div>
 
+
+            <form onSubmit={handlePost}>
             <div className="mt-10 text-xl text-center">
               Select wanted delivery date:
               <label className="inline-block" />
               <input
                 type="date"
-                name="Date"
+                name="formDate"
+                value={formDate} onChange={handleChange}
                 className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                 placeholder="select date..."
               />
@@ -213,13 +257,15 @@ function App() {
             <div class="flex justify-center mt-5 mb-5">
               <Button
                 type="submit"
-                value="submit"
                 class="m-5 p-2 bg-eggplant text-white rounded drop-shadow-lg"
               >
                 Send Quote
               </Button>
             </div>
-          </form>
+                  </form>
+            <p>
+                <strong>{formResult}</strong>
+            </p>
         </div>
       </div>
     </>
