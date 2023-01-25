@@ -165,7 +165,7 @@ let scrapedDataGoogle = [];
 };  */
 
 let scrapedDataJHElektronika = [];
-const scrapeAliExpress = () => {
+const scrapeJHElectronica = () => {
   return unirest
     .get("https://www.jh-electronica.com/")
     .headers({
@@ -206,7 +206,7 @@ const scrapeAliExpress = () => {
 };
 let scrapedData = [];
 
-scrapeAliExpress();
+scrapeJHElectronica();
 /* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose

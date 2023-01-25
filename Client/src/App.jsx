@@ -14,8 +14,9 @@ function App() {
     const filterResult = data.filter(
       (object) => object.title.toLowerCase() === inputCriteria.toLowerCase()
     );
-    setOutput(filterResult);
-    console.log(filterResult);
+    filterResult.lenght !== 0
+      ? setOutput(filterResult[0]?.title)
+      : setOutput("No product found");
   };
   useEffect(() => {
     const fetchData = async () => {
@@ -59,7 +60,11 @@ function App() {
                   setUserSearch(event.target.value);
                 }}
               />
-              {output.title}
+              {output ? (
+                <h2>{output}</h2>
+              ) : (
+                <h2>No product with that name, check the spelling</h2>
+              )}
             </span>
 
             <span className="inline-block ml-20 mt-10">
