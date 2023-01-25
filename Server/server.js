@@ -211,11 +211,10 @@ scrapeAliExpress();
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-
     if(scrapedData.length == 0) {
-        scrapedData = scrapedDataGoogle[0].concat(scrapedDataJHElektronika[0]);
+        //scrapedData = scrapeAliExpress[0].concat(scrapedDataJHElektronika[0]);
+        scrapedData = scrapedDataJHElektronika[0];
     }
-
     res.json(scrapedData);
 });
 
