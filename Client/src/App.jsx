@@ -59,7 +59,7 @@ function App() {
                   setUserSearch(event.target.value);
                 }}
               />
-              {output.length !== 0 ? output.innerText : ""}
+              {output.title}
             </span>
 
             <span className="inline-block ml-20 mt-10">
