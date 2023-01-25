@@ -23,21 +23,12 @@ function App() {
         .then((response) => response.json())
         .then((data) => {
           setData(data);
-          console.log(data[9].title);
         });
     };
 
     fetchData();
   }, []);
 
-  console.log(userSearch);
-  // const filterData = (data) => {
-  //   const filterResult = data.filter(
-  //     (object) => object.title == "2.54mm 1*40P Color Single Row Needle"
-  //   );
-  //   console.log(filterResult);
-  // };
-  console.log(data[1]);
   return (
     <>
       <>
@@ -68,7 +59,7 @@ function App() {
                   setUserSearch(event.target.value);
                 }}
               />
-              {output !== 0 ? output.title : ""}
+              {output.length !== 0 ? output.innerText : ""}
             </span>
 
             <span className="inline-block ml-20 mt-10">
