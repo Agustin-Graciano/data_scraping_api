@@ -115,10 +115,12 @@ const selectRandom = () => {
   var randomNumber = Math.floor(Math.random() * userAgents.length);
   return userAgents[randomNumber];
 };
+
 let user_agent = selectRandom();
 
 let scrapedDataGoogle = [];
-const scrapeGoogleSearch = () => {
+
+/* const scrapeGoogleSearch = () => {
   return unirest
     .get("https://www.google.com/search?q=AliExpress+&sxsrf")
     .headers({
@@ -160,7 +162,7 @@ const scrapeGoogleSearch = () => {
       scrapedDataGoogle.push(GoogleSearchScrape);
       console.log(Results);
     });
-};
+};  */
 
 let scrapedDataJHElektronika = [];
 const scrapeAliExpress = () => {
@@ -190,7 +192,7 @@ const scrapeAliExpress = () => {
 
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
-          title: titles[i],
+          title: titles[i].replace(/\s+/g, " ").trim(),
           price: prices[i],
           picture: pictures[i],
         };
@@ -205,15 +207,15 @@ const scrapeAliExpress = () => {
 let scrapedData = [];
 
 scrapeAliExpress();
-scrapeGoogleSearch();
-
-
+/* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
+
     if(scrapedData.length == 0) {
         scrapedData = scrapedDataGoogle[0].concat(scrapedDataJHElektronika[0]);
     }
+
     res.json(scrapedData);
 });
 
