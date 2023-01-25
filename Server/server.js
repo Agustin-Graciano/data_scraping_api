@@ -120,7 +120,7 @@ let user_agent = selectRandom();
 
 let scrapedDataGoogle = [];
 
-/* const scrapeGoogleSearch = () => {
+ const scrapeGoogleSearch = () => {
   return unirest
     .get("https://www.google.com/search?q=AliExpress+&sxsrf")
     .headers({
@@ -162,7 +162,7 @@ let scrapedDataGoogle = [];
       scrapedDataGoogle.push(GoogleSearchScrape);
       console.log(Results);
     });
-};  */
+}; 
 
 let scrapedDataJHElektronika = [];
 const scrapeAliExpress = () => {
@@ -207,13 +207,12 @@ const scrapeAliExpress = () => {
 let scrapedData = [];
 
 scrapeAliExpress();
-/* scrapeGoogleSearch(); */
+scrapeGoogleSearch();
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
     if(scrapedData.length == 0) {
-        //scrapedData = scrapeAliExpress[0].concat(scrapedDataJHElektronika[0]);
-        scrapedData = scrapedDataJHElektronika[0];
+        scrapedData = scrapeGoogleSearch[0].concat(scrapedDataJHElektronika[0]);
     }
     res.json(scrapedData);
 });
