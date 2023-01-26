@@ -132,8 +132,8 @@ function App() {
       <div className="flex justify-center">
         <div className="w-3/5">
         
+            
         <div>
-          <form onSubmit={handlePost}>
             <div className="mt-10 text-xl text-center">
               Select wanted delivery date:
               <span className="">
@@ -147,7 +147,7 @@ function App() {
                 />
               </span>
             </div>
-          </form>
+          
           <p>
             <strong>{formResult}</strong>
           </p>
@@ -266,7 +266,7 @@ function App() {
               placeholder="Phone number"
             />
           </span>
-
+            <form onSubmit={handlePost}>
           <div className="flex justify-center mt-5 mb-5">
               <Button
                 onClick={
@@ -281,7 +281,7 @@ function App() {
                 Send Quote
               </Button>
             </div>
-
+        </form>
         </div>   
       </div>
     </>
