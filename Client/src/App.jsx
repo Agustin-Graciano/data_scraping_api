@@ -131,7 +131,29 @@ function App() {
       </>
       <div className="flex justify-center">
         <div className="w-3/5">
-          <div>
+        
+        <div>
+          <form onSubmit={handlePost}>
+            <div className="mt-10 text-xl text-center">
+              Select wanted delivery date:
+              <span className="">
+                <input
+                  type="date"
+                  name="formDate"
+                  value={formDate}
+                  onChange={handleChange}
+                  className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                  placeholder="select date..."
+                />
+              </span>
+            </div>
+          </form>
+          <p>
+            <strong>{formResult}</strong>
+          </p>
+        </div>
+        
+        <div>
             <span className="inline-block ml-20 mt-10">
               <input
                 type="string"
@@ -160,9 +182,35 @@ function App() {
                 placeholder="Amount"
               />
             </span>
+         </div>
 
+         <div>
+              <span className="inline-block ml-20 mt-10">
+                  <input
+                      type="string"
+                      name="Component"
+                      className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                      placeholder="Enter component name..."
+                      onChange={(event) => {
+                                  setUserSearch(event.target.value);
+                              }}
+                  />
+                  {output ? (
+                              <h2>{output}</h2>
+                          ) : (
+                              <h2>No product with that name, check the spelling</h2>
+                          )}
+              </span>
             
-          </div>
+            <span className="inline-block ml-20 mt-6">
+              <input
+                type="int"
+                name="Amount"
+                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="Amount"
+              />
+            </span>
+        </div>
 
           <div>
               <span className="inline-block ml-20 mt-10">
@@ -190,38 +238,6 @@ function App() {
                 placeholder="Amount"
               />
             </span>
-            
-          </div>
-
-          <div>
-              <span className="inline-block ml-20 mt-10">
-                  <input
-                      type="string"
-                      name="Component"
-                      className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                      placeholder="Enter component name..."
-                      onChange={(event) => {
-                                  setUserSearch(event.target.value);
-                              }}
-                  />
-                  {output ? (
-                              <h2>{output}</h2>
-                          ) : (
-                              <h2>No product with that name, check the spelling</h2>
-                          )}
-              </span>
-
-            <span className="inline-block ml-20 mt-6">
-              <input
-                type="int"
-                name="Amount"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Amount"
-              />
-            </span>
-
-            
-            <div></div>
           </div>
 
           <span className="block ml-20 mt-12">
@@ -250,25 +266,8 @@ function App() {
               placeholder="Phone number"
             />
           </span>
-        </div>
 
-        <div>
-          <form onSubmit={handlePost}>
-            <div className="mt-10 text-xl text-center">
-              Select wanted delivery date:
-              <span className="">
-                <input
-                  type="date"
-                  name="formDate"
-                  value={formDate}
-                  onChange={handleChange}
-                  className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                  placeholder="select date..."
-                />
-              </span>
-            </div>
-
-            <div className="flex justify-center mt-5 mb-5">
+          <div className="flex justify-center mt-5 mb-5">
               <Button
                 onClick={
                   userSearch.length === 0
@@ -282,11 +281,8 @@ function App() {
                 Send Quote
               </Button>
             </div>
-          </form>
-          <p>
-            <strong>{formResult}</strong>
-          </p>
-        </div>
+
+        </div>   
       </div>
     </>
   );
