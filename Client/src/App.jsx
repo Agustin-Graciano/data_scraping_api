@@ -27,29 +27,34 @@ function App() {
   }, []);
 
   const PostForm = () => {
-    fetch("http://localhost:5000/pyth", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        Price: 1200,
-        Amount: 24,
-        Currency: "USD",
-        OutsideEbits: "True",
-        OutsideEU: "True",
-        Date: formDate,
-      }),
-    })
-      .then((response) => response.text())
-      .then((formResult) => {
-        setformResult(formResult);
-        console.log("Received: ", formResult);
-      });
+      if (formDate != "") {
+          const date = new Date();
+          let currentDate = date.getFullYear() + "-" + ('0' + (date.getMonth() + 1)).slice(-2) + "-" + ('0' + date.getDate()).slice(-2);
+          console.log(currentDate);
+          console.log("Sent date: ", formDate);
+          fetch("http://localhost:5000/pyth", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  Price: 1200,
+                  Amount: 24,
+                  Currency: "USD",
+                  OutsideEbits: "True",
+                  OutsideEU: "True",
+                  Date: formDate,
+              }),
+          })
+              .then((response) => response.text())
+              .then((formResult) => {
+                  setformResult(formResult);
+                  console.log("Received: ", formResult);
+              });
+      }
   };
   var handlePost = (event) => {
     event.preventDefault();
-    console.log("Sent date: ", formDate);
     PostForm();
   };
   var handleChange = (event) => {
@@ -62,7 +67,7 @@ function App() {
       (object) => object.title.toLowerCase() === inputCriteria.toLowerCase()
     );
     //Checks if there is a result from the filtering
-    filterResult.lenght !== 0
+    filterResult.length !== 0
       ? //If yes, sets the output to be equal to the result that fit the filtering criteria
         setOutput(filterResult[0]?.title)
       : setOutput("No product found");
