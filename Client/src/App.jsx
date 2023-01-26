@@ -7,6 +7,7 @@ function App() {
   //Variables for the data scraping API
   const [data, setData] = useState([]);
   const [userSearch, setUserSearch] = useState("");
+  const [outputObj, setOutputObj] = useState("");
   const [output, setOutput] = useState("");
 
   var [formDate, setformDate] = useState("");
@@ -39,26 +40,27 @@ function App() {
     fetchData();
   }, []);
     //Does the posting that is expected to happen when running handlePost.
-    //Also checks date for whether it's anything, and whether it's after the earliest deliverydate.
+    //Also checks date for whether it's anything, and whether it's after the earliest delivery date.
   const PostForm = () => {
       if (formDate != "") {
           //adjust the 7 for the amount of minimum weekdays you would want.
           var minDaysDelivery = 7;
+          console.log(output);
           if (setMinDays(formDate, minDaysDelivery)) {
               fetch("http://localhost:5000/pyth",
                       {
                           method: "POST",
                           headers: {
-                              "Content-Type": "application/json",
+                              "Content-Type": "application/json"
                           },
                           body: JSON.stringify({
-                              Price: 1200,
+                              Price: outputObj.price,
                               Amount: 24,
                               Currency: "USD",
                               OutsideEbits: "True",
                               OutsideEU: "True",
-                              Date: formDate,
-                          }),
+                              Date: formDate
+                          })
                       })
                   .then((response) => response.text())
                   .then((formResult) => {
@@ -88,7 +90,7 @@ function App() {
     //Checks if there is a result from the filtering
     filterResult.length !== 0
       ? //If yes, sets the output to be equal to the result that fit the filtering criteria
-        setOutput(filterResult[0]?.title)
+        (setOutput(filterResult[0]?.title), setOutputObj(filterResult[0]))
       : setOutput("No product found");
     console.log(filterResult);
   };
