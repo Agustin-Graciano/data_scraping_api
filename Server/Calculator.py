@@ -78,6 +78,7 @@ def CalcOutsideEbitsOutsideEU(TotalPriceBeforeCalc, Amount, ExchangeCurrencyStr)
 
 #The main driver of the app. First check for if the item is within Ebits stock removes VAT from the total price.
 def main(Price, Amount, Currency, OutsideEbits, OutsideEU, DeliveryDate):
+    Price *= Amount
     if(OutsideEbits == False):
         Calculation = Price * 0.8
     elif(OutsideEbits == True and OutsideEU == True):
@@ -104,8 +105,8 @@ def DiscountsAndPenalties(Price, Amount, DeliveryDate):
         case _ if IntermediateTime.days > 28:
             TimePenaltyToApply = 1.0
     FinalPrice = AmountDiscount * TimePenaltyToApply
-    return FinalPrice
-
+    return FinalPrice * Amount
+#Remove the above * Amount if we want the calculation to be per item.
 
 #sys.argv.append("1200")
 #sys.argv.append("24")

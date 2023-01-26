@@ -32,7 +32,7 @@ function App() {
       if (!str) {
           return false;
       }
-      str = str.replace(/^0+/, "") || "0";
+      str = str.replace(/^0+/, "");
       var n = Math.floor(Number(str));
       return n !== Infinity && String(n) === str && n >= 0;
     }
@@ -73,7 +73,7 @@ function App() {
                               "Content-Type": "application/json"
                           },
                           body: JSON.stringify({
-                              Price: (outputObj.price.slice(1) * amount),
+                              Price: (outputObj.price.slice(1)),
                               Amount: amount,
                               Currency: currency,
                               OutsideEbits: "True",
@@ -83,8 +83,8 @@ function App() {
                       })
                   .then((response) => response.text())
                   .then((formResult) => {
-                      setformResult("Approx. " + (parseFloat(formResult.replace(',', '.')) * amount) + " dkk.-");
-                      console.log("Received: ", (parseFloat(formResult.replace(',', '.')) * amount));
+                      setformResult("Approx. " + (parseFloat(formResult.replace(',', '.'))) + " dkk.-");
+                      console.log("Received: ", (parseFloat(formResult.replace(',', '.'))));
                   });
           } else {
               setformResult('Unfortunately, delivery is only available after ' + minDaysDelivery + " days.");
@@ -98,7 +98,7 @@ function App() {
           setformResult('Please input the name of a component you want to the side.');
       }
       else if (!isStringInteger(amount)) {
-          setformResult('Amount is not a proper integer. Try harder.');
+          setformResult('Amount is not a proper positive integer. Try harder.');
       }
   };
   //in a form with onsubmit="handlePost", the form doesn't post normally but instead runs this.
