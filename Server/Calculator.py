@@ -89,7 +89,7 @@ def main(Price, Amount, Currency, OutsideEbits, OutsideEU, DeliveryDate):
     
 #Calculates how much of a discount is applied based on how many of an item are bought. Buy 6 or more to get 1,5%, buy 9 or more to get 2,5% off the order.
 def DiscountsAndPenalties(Price, Amount, DeliveryDate):
-    AmountDiscountToApply = float
+    AmountDiscountToApply = 1.0
     match Amount:
         case _ if Amount >= 9:
             AmountDiscountToApply = 0.975

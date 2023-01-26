@@ -9,6 +9,7 @@ function App() {
   const [userSearch, setUserSearch] = useState("");
   const [outputObj, setOutputObj] = useState("");
   const [output, setOutput] = useState("");
+  const [amount, setAmount] = useState("");
 
   var [formDate, setformDate] = useState("");
   var [formResult, setformResult] = useState("");
@@ -25,6 +26,16 @@ function App() {
       }
       return false;
   }
+  //Function to check whether a string is an integer. Now with added leading zeroes and leading whitespace support!
+  function isStringInteger(str) {
+      str = str.trim();
+      if (!str) {
+          return false;
+      }
+      str = str.replace(/^0+/, "") || "0";
+      var n = Math.floor(Number(str));
+      return n !== Infinity && String(n) === str && n >= 0;
+    }
 
   //useEffect
   useEffect(() => {
@@ -42,10 +53,18 @@ function App() {
     //Does the posting that is expected to happen when running handlePost.
     //Also checks date for whether it's anything, and whether it's after the earliest delivery date.
   const PostForm = () => {
-      if (formDate != "") {
+      setformResult('');
+      console.log(amount);
+      if (formDate != "" && outputObj && isStringInteger(amount)) {
           //adjust the 7 for the amount of minimum weekdays you would want.
           var minDaysDelivery = 7;
-          console.log(output);
+          console.log(outputObj);
+          var price = outputObj.price.slice(1);
+          var currency = outputObj.price.substr(0, 1);
+          if (currency == "$") {
+              currency = "USD";
+          }
+          console.log(price);
           if (setMinDays(formDate, minDaysDelivery)) {
               fetch("http://localhost:5000/pyth",
                       {
@@ -54,9 +73,9 @@ function App() {
                               "Content-Type": "application/json"
                           },
                           body: JSON.stringify({
-                              Price: outputObj.price,
-                              Amount: 24,
-                              Currency: "USD",
+                              Price: (outputObj.price.slice(1) * amount),
+                              Amount: amount,
+                              Currency: currency,
                               OutsideEbits: "True",
                               OutsideEU: "True",
                               Date: formDate
@@ -64,15 +83,24 @@ function App() {
                       })
                   .then((response) => response.text())
                   .then((formResult) => {
-                      setformResult(formResult);
-                      console.log("Received: ", formResult);
+                      setformResult("Approx. " + (parseFloat(formResult.replace(',', '.')) * amount) + " dkk.-");
+                      console.log("Received: ", (parseFloat(formResult.replace(',', '.')) * amount));
                   });
           } else {
               setformResult('Unfortunately, delivery is only available after ' + minDaysDelivery + " days.");
           }
 
       }
-    };
+      else if (!formDate) {
+          setformResult('Please input a delivery date.');
+      }
+      else if (!outputObj) {
+          setformResult('Please input the name of a component you want to the side.');
+      }
+      else if (!isStringInteger(amount)) {
+          setformResult('Amount is not a proper integer. Try harder.');
+      }
+  };
   //in a form with onsubmit="handlePost", the form doesn't post normally but instead runs this.
   var handlePost = (event) => {
     event.preventDefault();
@@ -103,48 +131,8 @@ function App() {
       </>
       <div className="flex justify-center">
         <div className="w-3/5">
-          <div className="mt-10 text-xl text-center">
-            Select wanted delivery date:
-            <span className="">
-              <input
-                type="date"
-                name="date"
-                className="ml-2 mt-1 px-4 py-2 w-1/4 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="select date..."
-              />
-            </span>
-          </div>
-
           <div>
             <span className="inline-block ml-20 mt-10">
-              <input
-                type="string"
-                name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Enter component name..."
-                onChange={(event) => {
-                  setUserSearch(event.target.value);
-                }}
-              />
-              {output ? (
-                <h2>{output}</h2>
-              ) : (
-                <h2>No product with that name, check the spelling</h2>
-              )}
-              <input
-                type="string"
-                name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Enter component name..."
-                onChange={(event) => {
-                  setUserSearch(event.target.value);
-                }}
-              />
-              {output ? (
-                <h2>{output}</h2>
-              ) : (
-                <h2>No product with that name, check the spelling</h2>
-              )}
               <input
                 type="string"
                 name="Component"
@@ -165,31 +153,63 @@ function App() {
               <input
                 type="int"
                 name="Amount"
+                onChange={(event) => {
+                    setAmount(event.target.value);
+                }}
                 className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                 placeholder="Amount"
               />
             </span>
 
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="int"
-                name="Price"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Price"
-              />
-            </span>
-            <div className="inline-block text-lg ml-4">kr ex. VAT</div>
+            
           </div>
 
           <div>
+              <span className="inline-block ml-20 mt-10">
+                  <input
+                      type="string"
+                      name="Component"
+                      className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                      placeholder="Enter component name..."
+                      onChange={(event) => {
+                                  setUserSearch(event.target.value);
+                              }}
+                  />
+                  {output ? (
+                              <h2>{output}</h2>
+                          ) : (
+                              <h2>No product with that name, check the spelling</h2>
+                          )}
+              </span>
+
             <span className="inline-block ml-20 mt-6">
               <input
-                type="string"
-                name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Enter component name..."
+                type="int"
+                name="Amount"
+                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="Amount"
               />
             </span>
+            
+          </div>
+
+          <div>
+              <span className="inline-block ml-20 mt-10">
+                  <input
+                      type="string"
+                      name="Component"
+                      className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                      placeholder="Enter component name..."
+                      onChange={(event) => {
+                                  setUserSearch(event.target.value);
+                              }}
+                  />
+                  {output ? (
+                              <h2>{output}</h2>
+                          ) : (
+                              <h2>No product with that name, check the spelling</h2>
+                          )}
+              </span>
 
             <span className="inline-block ml-20 mt-6">
               <input
@@ -200,47 +220,7 @@ function App() {
               />
             </span>
 
-            <span className="inline-block ml-20 mt-6">
-              <input
-                type="int"
-                name="Price"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Price"
-              />
-            </span>
-
-            <div className="inline-block text-lg ml-4">kr ex. VAT</div>
-          </div>
-
-          <div>
-            <span className="inline-block ml-20 mt-6">
-              <input
-                type="string"
-                name="Component"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Enter component name..."
-              />
-            </span>
-
-            <span className="inline-block ml-20 mt-6">
-              <input
-                type="int"
-                name="Amount"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Amount"
-              />
-            </span>
-
-            <span className="inline-block ml-20 mt-6">
-              <input
-                type="int"
-                name="Price"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Price"
-              />
-            </span>
-
-            <div className="inline-block text-lg ml-4">kr ex. VAT</div>
+            
             <div></div>
           </div>
 
@@ -270,53 +250,6 @@ function App() {
               placeholder="Phone number"
             />
           </span>
-          <form method="post" action="http://localhost:5000/pyth">
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="float"
-                name="Price"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Price"
-              />
-            </span>
-            <div className="inline-block text-lg ml-4"></div>
-
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="int"
-                name="Amount"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Amount"
-              />
-            </span>
-
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="string"
-                name="Currency"
-                className="w-24 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="Currency in 3 letters"
-              />
-            </span>
-
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="string"
-                name="OutsideEbits"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="OutsideEbits"
-              />
-            </span>
-
-            <span className="inline-block ml-20 mt-10">
-              <input
-                type="string"
-                name="OutsideEU"
-                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                placeholder="OutsideEU"
-              />
-            </span>
-          </form>
         </div>
 
         <div>
