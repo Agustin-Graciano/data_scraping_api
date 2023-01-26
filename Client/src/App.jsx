@@ -222,7 +222,7 @@ function App() {
                 className="w-1/4 ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                 placeholder="Phone number"/>
         </span>
-
+        <div>
           <form method="post" action="http://localhost:5000/pyth">
             <div>
               <span className="inline-block ml-20 mt-10">
@@ -232,6 +232,7 @@ function App() {
                     className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
                     placeholder="Price"/>
             </span>
+            </div>
             <div className="inline-block text-lg ml-4"></div>
 
               <span className="inline-block ml-20 mt-10">
