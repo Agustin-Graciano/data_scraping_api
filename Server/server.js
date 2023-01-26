@@ -213,7 +213,8 @@ scrapeAliExpress();
 app.get("/api", (req, res) => {
     if(scrapedData.length == 0) {
       // Select the variable of use don't use concat
-        scrapedData = (scrapeAliExpress[0]).$(scrapedDataJHElektronika[0]);
+      //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
+        scrapedData = scrapedDataJHElektronika[0];
     }
     res.json(scrapedData);
 });
