@@ -205,50 +205,50 @@ const scrapeJHElectronica = () => {
     });
 };
 
-// let scrapedDataJHElektronika2 = [];
-// const scrapeJHElectronica2 = () => {
-//   return unirest
-//     .get("https://www.jh-electronica.com/jh-products.aspx")
-//     .headers({
-//       UserAgent: `${user_agent}`,
-//     })
-//     .then((response) => {
-//       let $ = cheerio.load(response.body);
+let scrapedDataJHElektronika2 = [];
+const scrapeJHElectronica2 = () => {
+  return unirest
+    .get("https://www.jh-electronica.com/jh-products.aspx")
+    .headers({
+      UserAgent: `${user_agent}`,
+    })
+    .then((response) => {
+      let $ = cheerio.load(response.body);
 
-//       let titles = [];
-//       let prices = [];
-//       let pictures = [];
+      let titles = [];
+      let prices = [];
+      let pictures = [];
 
-//       $(".h-car1-b  .db").each((i, el) => {
-//         prices[i] = $(el).text();
-//       });
-//       $("lg-3  .els2").each((i, el) => {
-//         titles[i] = $(el).text();
-//       });
-//       $(".pic .po-auto").each((i, el) => {
-//         pictures[i] = $(el).attr("src");
-//       });
+      $("em .mt5").each((i, el) => {
+        prices[i] = $(el).text();
+      });
+      $("li .els2").each((i, el) => {
+        titles[i] = $(el).text();
+      });
+      $("li .pic .po-auto").each((i, el) => {
+        pictures[i] = $(el).attr("src");
+      });
 
-//       const Results = [];
+      const Results = [];
 
-//       for (let i = 0; i < titles.length; i++) {
-//         Results[i] = {
-//           title: titles[i].replace(/\s+/g, " ").trim(),
-//           price: prices[i].replace(/\s+/g, " ").trim(),
-//           picture: pictures[i],
-//         };
-//       }
+      for (let i = 0; i < titles.length; i++) {
+        Results[i] = {
+          title: titles[i],
+          price: prices[i],
+          picture: pictures[i],
+        };
+      }
 
-//       console.log(Results);
-//       let JHElctronika = Results;
+      console.log(Results);
+      let JHElctronika = Results;
 
-//       scrapedDataJHElektronika2.push(JHElctronika);
-//     });
-// };
+      scrapedDataJHElektronika2.push(JHElctronika);
+    });
+};
 let scrapedData = [];
 
 scrapeJHElectronica();
-// scrapeJHElectronica2();
+scrapeJHElectronica2();
 /* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose
@@ -256,7 +256,9 @@ app.get("/api", (req, res) => {
   if (scrapedData.length == 0) {
     // Select the variable of use don't use concat
     //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-    scrapedData = scrapedDataJHElektronika[0];
+    scrapedData = scrapedDataJHElektronika[0].concat(
+      scrapedDataJHElektronika2[0]
+    );
   }
   res.json(scrapedData);
 });
