@@ -233,7 +233,7 @@ const scrapeJHElectronica2 = () => {
 
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
-          title: titles[i],
+          title: titles[i].replace(/\s+/g, " ").trim(),
           price: prices[i],
           picture: pictures[i],
         };
