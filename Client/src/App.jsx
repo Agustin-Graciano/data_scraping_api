@@ -113,6 +113,15 @@ function App() {
                     setUserSearch(event.target.value);
                 }}/>
                 {output.title}
+                <input
+                    type="string"
+                    name="Component"
+                    className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                    placeholder="Enter component name..."
+                    onChange={(event) => {
+                    setUserSearch(event.target.value);
+                }}/>
+                {output.title}
             </span>
 
             <span className="inline-block ml-20 mt-10">
@@ -241,22 +250,24 @@ function App() {
                     placeholder="Currency in 3 letters"/>
             </span>
 
-              <span className="inline-block ml-20 mt-10">
-                <input
-                    type="string"
-                    name="OutsideEbits"
-                    className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                    placeholder="OutsideEbits"/>
+            <span className="inline-block ml-20 mt-10">
+              <input
+                type="string"
+                name="OutsideEbits"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="OutsideEbits"
+              />
             </span>
 
-              <span className="inline-block ml-20 mt-10">
-                <input
-                    type="string"
-                    name="OutsideEU"
-                    className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
-                    placeholder="OutsideEU"/>
+            <span className="inline-block ml-20 mt-10">
+              <input
+                type="string"
+                name="OutsideEU"
+                className="ml-2 mt-1 px-4 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 rounded-md sm:text-sm focus:ring-1"
+                placeholder="OutsideEU"
+              />
             </span>
-        </div>
+          </div>
 
           <form onSubmit={handlePost}>
             <div className="mt-10 text-xl text-center">
