@@ -165,6 +165,8 @@ const scrapeGoogleSearch = () => {
 };
 
 let scrapedDataJHElektronika = [];
+
+//The function that scrapes the JHElectronica web site
 const scrapeJHElectronica = () => {
   return unirest
     .get("https://www.jh-electronica.com/")
@@ -193,7 +195,7 @@ const scrapeJHElectronica = () => {
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
           title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i],
+          price: prices[i].replace(/\s+/g, " ").trim(),
           picture: pictures[i],
         };
       }
@@ -206,7 +208,7 @@ const scrapeJHElectronica = () => {
 };
 let scrapedData = [];
 
-scrapeAliExpress();
+scrapeJHElectronica();
 scrapeGoogleSearch();
 
 //Making the API rsquest/respose
