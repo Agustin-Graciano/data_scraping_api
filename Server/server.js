@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+      origin: "*"
   })
 );
 
@@ -120,11 +120,11 @@ let user_agent = selectRandom();
 
 let scrapedDataGoogle = [];
 
-const scrapeGoogleSearch = () => {
+/*  const scrapeGoogleSearch = () => {
   return unirest
     .get("https://www.google.com/search?q=AliExpress+&sxsrf")
     .headers({
-      "User-Agent": `${user_agent}`,
+      "User-Agent": `${user_agent}`
     })
     .then((response) => {
       let $ = cheerio.load(response.body);
@@ -162,12 +162,10 @@ const scrapeGoogleSearch = () => {
       scrapedDataGoogle.push(GoogleSearchScrape);
       console.log(Results);
     });
-};
+}; */ 
 
 let scrapedDataJHElektronika = [];
-
-//The function that scrapes the JHElectronica web site
-const scrapeJHElectronica = () => {
+const scrapeAliExpress = () => {
   return unirest
     .get("https://www.jh-electronica.com/")
     .headers({
@@ -195,7 +193,7 @@ const scrapeJHElectronica = () => {
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
           title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i].replace(/\s+/g, " ").trim(),
+          price: prices[i],
           picture: pictures[i],
         };
       }
@@ -208,27 +206,28 @@ const scrapeJHElectronica = () => {
 };
 let scrapedData = [];
 
-scrapeJHElectronica();
-scrapeGoogleSearch();
+scrapeAliExpress();
+/* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-  if (scrapedData.length == 0) {
-    scrapedData = scrapeGoogleSearch[0].concat(scrapedDataJHElektronika[0]);
-  }
-  res.json(scrapedData);
+    if(scrapedData.length == 0) {
+      // Select the variable of use don't use concat
+        scrapedData = (scrapeAliExpress[0]).$(scrapedDataJHElektronika[0]);
+    }
+    res.json(scrapedData);
 });
 
 //Connection to python
 app.post("/pyth", (req, res, next) => {
-  var price = Number(req.body.Price);
-  var amount = Number(req.body.Amount);
-  var currency = String(req.body.Currency);
-  var outsideEbits = String(req.body.OutsideEbits);
-  var outsideEU = String(req.body.OutsideEU);
-  var dateToBeDelivered = String(req.body.Date);
+    var price = Number(req.body.Price);
+    var amount = Number(req.body.Amount);
+    var currency = String(req.body.Currency);
+    var outsideEbits = String(req.body.OutsideEbits);
+    var outsideEU = String(req.body.OutsideEU);
+    var dateToBeDelivered = String(req.body.Date);
   var dataToSend = String();
-  console.log(req.body);
+    console.log(req.body);
 
   const python3 = spawn("python", [
     "Calculator.py",
@@ -237,16 +236,16 @@ app.post("/pyth", (req, res, next) => {
     currency,
     outsideEbits,
     outsideEU,
-    dateToBeDelivered,
+    dateToBeDelivered
   ]);
   python3.stdout.on("data", function (data) {
     dataToSend = data.toString();
     const formatter = new Intl.NumberFormat("dk-DK", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
-    dataToSend = formatter.format(dataToSend);
-    console.log(`Results: ${dataToSend}`);
+      dataToSend = formatter.format(dataToSend);
+      console.log(`Results: ${dataToSend}`);
   });
 
   // in close event we are sure that stream from child process is closed
@@ -259,3 +258,4 @@ app.post("/pyth", (req, res, next) => {
 app.listen(5000, () => {
   console.log("server started on port 5000");
 });
+
