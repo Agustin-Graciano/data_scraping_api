@@ -12,6 +12,19 @@ function App() {
   var [formDate, setformDate] = useState("");
   var [formResult, setformResult] = useState("");
 
+  //Function to set the earliest you would want deliveries to be available.
+  function setMinDays(deliveryDate, minDays) {
+      const oneDayMs = 86400000;
+      const todayDate = new Date().setHours(0, 0, 0, 0).valueOf();
+      const receivedDate = new Date(formDate).valueOf();
+      const timeDiff = receivedDate - todayDate;
+      const customDaysMs = oneDayMs * minDays;
+      if (timeDiff > customDaysMs) {
+          return true;
+      }
+      return false;
+  }
+
   //useEffect
   useEffect(() => {
     //Getting the scraped data from the server side
@@ -25,34 +38,40 @@ function App() {
 
     fetchData();
   }, []);
-
+    //Does the posting that is expected to happen when running handlePost.
+    //Also checks date for whether it's anything, and whether it's after the earliest deliverydate.
   const PostForm = () => {
       if (formDate != "") {
-          const date = new Date();
-          let currentDate = date.getFullYear() + "-" + ('0' + (date.getMonth() + 1)).slice(-2) + "-" + ('0' + date.getDate()).slice(-2);
-          console.log(currentDate);
-          console.log("Sent date: ", formDate);
-          fetch("http://localhost:5000/pyth", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                  Price: 1200,
-                  Amount: 24,
-                  Currency: "USD",
-                  OutsideEbits: "True",
-                  OutsideEU: "True",
-                  Date: formDate,
-              }),
-          })
-              .then((response) => response.text())
-              .then((formResult) => {
-                  setformResult(formResult);
-                  console.log("Received: ", formResult);
-              });
+          //adjust the 7 for the amount of minimum weekdays you would want.
+          var minDaysDelivery = 7;
+          if (setMinDays(formDate, minDaysDelivery)) {
+              fetch("http://localhost:5000/pyth",
+                      {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                              Price: 1200,
+                              Amount: 24,
+                              Currency: "USD",
+                              OutsideEbits: "True",
+                              OutsideEU: "True",
+                              Date: formDate,
+                          }),
+                      })
+                  .then((response) => response.text())
+                  .then((formResult) => {
+                      setformResult(formResult);
+                      console.log("Received: ", formResult);
+                  });
+          } else {
+              setformResult('Unfortunately, delivery is only available after ' + minDaysDelivery + " days.");
+          }
+
       }
-  };
+    };
+  //in a form with onsubmit="handlePost", the form doesn't post normally but instead runs this.
   var handlePost = (event) => {
     event.preventDefault();
     PostForm();
