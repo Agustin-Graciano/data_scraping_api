@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-      origin: "*"
+    origin: "*",
   })
 );
 
@@ -162,10 +162,10 @@ let scrapedDataGoogle = [];
       scrapedDataGoogle.push(GoogleSearchScrape);
       console.log(Results);
     });
-}; */ 
+}; */
 
 let scrapedDataJHElektronika = [];
-const scrapeAliExpress = () => {
+const scrapeJHElectronica = () => {
   return unirest
     .get("https://www.jh-electronica.com/")
     .headers({
@@ -178,7 +178,7 @@ const scrapeAliExpress = () => {
       let prices = [];
       let pictures = [];
 
-      $(".h-car1-b  .db").each((i, el) => {
+      $(".h-car1-item  em").each((i, el) => {
         prices[i] = $(el).text();
       });
       $(".h-car1-item  .els2").each((i, el) => {
@@ -193,7 +193,7 @@ const scrapeAliExpress = () => {
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
           title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i],
+          price: prices[i].replace(/\s+/g, " ").trim(),
           picture: pictures[i],
         };
       }
@@ -204,31 +204,73 @@ const scrapeAliExpress = () => {
       scrapedDataJHElektronika.push(JHElctronika);
     });
 };
+
+// let scrapedDataJHElektronika2 = [];
+// const scrapeJHElectronica2 = () => {
+//   return unirest
+//     .get("https://www.jh-electronica.com/jh-products.aspx")
+//     .headers({
+//       UserAgent: `${user_agent}`,
+//     })
+//     .then((response) => {
+//       let $ = cheerio.load(response.body);
+
+//       let titles = [];
+//       let prices = [];
+//       let pictures = [];
+
+//       $(".h-car1-b  .db").each((i, el) => {
+//         prices[i] = $(el).text();
+//       });
+//       $("lg-3  .els2").each((i, el) => {
+//         titles[i] = $(el).text();
+//       });
+//       $(".pic .po-auto").each((i, el) => {
+//         pictures[i] = $(el).attr("src");
+//       });
+
+//       const Results = [];
+
+//       for (let i = 0; i < titles.length; i++) {
+//         Results[i] = {
+//           title: titles[i].replace(/\s+/g, " ").trim(),
+//           price: prices[i].replace(/\s+/g, " ").trim(),
+//           picture: pictures[i],
+//         };
+//       }
+
+//       console.log(Results);
+//       let JHElctronika = Results;
+
+//       scrapedDataJHElektronika2.push(JHElctronika);
+//     });
+// };
 let scrapedData = [];
 
-scrapeAliExpress();
+scrapeJHElectronica();
+// scrapeJHElectronica2();
 /* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
-    if(scrapedData.length == 0) {
-      // Select the variable of use don't use concat
-      //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-        scrapedData = scrapedDataJHElektronika[0];
-    }
-    res.json(scrapedData);
+  if (scrapedData.length == 0) {
+    // Select the variable of use don't use concat
+    //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
+    scrapedData = scrapedDataJHElektronika[0];
+  }
+  res.json(scrapedData);
 });
 
 //Connection to python
 app.post("/pyth", (req, res, next) => {
-    var price = Number(req.body.Price);
-    var amount = Number(req.body.Amount);
-    var currency = String(req.body.Currency);
-    var outsideEbits = String(req.body.OutsideEbits);
-    var outsideEU = String(req.body.OutsideEU);
-    var dateToBeDelivered = String(req.body.Date);
+  var price = Number(req.body.Price);
+  var amount = Number(req.body.Amount);
+  var currency = String(req.body.Currency);
+  var outsideEbits = String(req.body.OutsideEbits);
+  var outsideEU = String(req.body.OutsideEU);
+  var dateToBeDelivered = String(req.body.Date);
   var dataToSend = String();
-    console.log(req.body);
+  console.log(req.body);
 
   const python3 = spawn("python", [
     "Calculator.py",
@@ -237,16 +279,16 @@ app.post("/pyth", (req, res, next) => {
     currency,
     outsideEbits,
     outsideEU,
-    dateToBeDelivered
+    dateToBeDelivered,
   ]);
   python3.stdout.on("data", function (data) {
     dataToSend = data.toString();
     const formatter = new Intl.NumberFormat("dk-DK", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
-      dataToSend = formatter.format(dataToSend);
-      console.log(`Results: ${dataToSend}`);
+    dataToSend = formatter.format(dataToSend);
+    console.log(`Results: ${dataToSend}`);
   });
 
   // in close event we are sure that stream from child process is closed
@@ -259,4 +301,3 @@ app.post("/pyth", (req, res, next) => {
 app.listen(5000, () => {
   console.log("server started on port 5000");
 });
-
