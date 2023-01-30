@@ -206,9 +206,61 @@ const scrapeJHElectronica = () => {
 };
 
 let scrapedDataJHElektronika2 = [];
+function scrapeJHElectroPageNumbers(PageIndex) {
+    return unirest
+        .get('https://www.jh-electronica.com/jh-products.aspx?current=' + PageIndex + '&mode=&per=1&sj=&ej=&keys=')
+        .headers({
+            UserAgent: `${user_agent}`
+        })
+        .then((response) => {
+            let $ = cheerio.load(response.body);
+            let titles = [];
+            let prices = [];
+            let pictures = [];
+            let link = [];
+
+            $('ul[class="row"]').find('li > div > div > a').each(function (index, element) {
+                titles[index] = $(element).find('h3').text();
+                pictures[index] = "https://www.jh-electronica.com" + $(element).find('div > img').attr("src");
+                prices[index] = $(element).find('div > em').text();
+                link[index] = "https://www.jh-electronica.com" + $(element).attr("href");
+            });
+
+            /*
+            $("em .tac .fb .db .mt5").each((i, el) => {
+              prices[i] = $(el).text();
+            });
+      
+            $(".h-car1-item  .els2").each((i, el) => {
+              titles[i] = $(el).text();
+            });
+      
+            $("li .pic .po-auto").each((i, el) => {
+              pictures[i] = $(el).attr("src");
+            });
+            */
+
+            const Results = [];
+
+            for (let i = 0; i < titles.length; i++) {
+                Results[i] = {
+                    title: titles[i].replace(/\s+/g, " ").trim(),
+                    price: prices[i],
+                    picture: pictures[i],
+                    link: link[i]
+                };
+            }
+
+            console.log(Results);
+            console.log("Number of products obtained: " + Results.length);
+            let JHElctronika = Results;
+            return Results;
+            scrapedDataJHElektronika2.push(JHElctronika);
+        });
+}
 const scrapeJHElectronica2 = () => {
     return unirest
-    .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=16&sj=&ej=&keys=")
+    .get("https://www.jh-electronica.com/jh-products.aspx?current=1&mode=&per=800&sj=&ej=&keys=")
     .headers({
       UserAgent: `${user_agent}`
     })
@@ -260,8 +312,9 @@ const scrapeJHElectronica2 = () => {
 };
 let scrapedData = [];
 
-//scrapeJHElectronica();
 scrapeJHElectronica2();
+//scrapeJHElectroPageNumbers(1);
+//scrapeJHElectroPageNumbers(2);
 /* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose
@@ -269,9 +322,7 @@ app.get("/api", (req, res) => {
   if (scrapedData.length == 0) {
     // Select the variable of use don't use concat
     //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-    scrapedData = scrapedDataJHElektronika[0].concat(
-      scrapedDataJHElektronika2[0]
-    );
+    scrapedData = scrapedDataJHElektronika2[0];
   }
   res.json(scrapedData);
 });

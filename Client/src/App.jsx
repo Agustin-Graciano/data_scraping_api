@@ -8,10 +8,9 @@ function App() {
   //Variables for the data scraping API
   const [data, setData] = useState([]);
   const [userSearch, setUserSearch] = useState("");
-  const [outputObj, setOutputObj] = useState("");
+  const [outputObj, setOutputObj] = useState({});
   const [output, setOutput] = useState("");
   const [amount, setAmount] = useState("");
-  const [visualOutput, setVisualOutput] = useState({});
 
   var [formDate, setformDate] = useState("");
   var [formResult, setformResult] = useState("");
@@ -124,8 +123,7 @@ function App() {
     filterResult.length !== 0
       ? //If yes, sets the output to be equal to the result that fit the filtering criteria
         (setOutput(filterResult[0]?.title),
-        setOutputObj(filterResult[0]),
-        setVisualOutput(filterResult[0]))
+        setOutputObj(filterResult[0]))
       : setOutput("No product found");
     console.log(filterResult);
   };
@@ -156,11 +154,11 @@ function App() {
             <p>
               <strong>{formResult}</strong>
             </p>
-            {visualOutput.title !== undefined ? (
+            {outputObj.title !== undefined ? (
               <OutPutCard
-                title={visualOutput.title}
-                price={visualOutput.price}
-                img={visualOutput.picture}
+                title={outputObj.title}
+                price={outputObj.price}
+                img={outputObj.picture}
               />
             ) : (
               <h2>No product with that name, check the spelling</h2>
