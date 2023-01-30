@@ -207,27 +207,38 @@ const scrapeJHElectronica = () => {
 
 let scrapedDataJHElektronika2 = [];
 const scrapeJHElectronica2 = () => {
-  return unirest
-    .get("https://www.jh-electronica.com/jh-products.aspx")
+    return unirest
+    .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=16&sj=&ej=&keys=")
     .headers({
-      UserAgent: `${user_agent}`,
+      UserAgent: `${user_agent}`
     })
     .then((response) => {
       let $ = cheerio.load(response.body);
-
       let titles = [];
       let prices = [];
       let pictures = [];
+      let link = [];
 
-      $("em .mt5").each((i, el) => {
+      $('ul[class="row"]').find('li > div > div > a').each(function (index, element) {
+          titles[index] = $(element).find('h3').text();
+          pictures[index] = "https://www.jh-electronica.com" + $(element).find('div > img').attr("src");
+          prices[index] = $(element).find('div > em').text();
+          link[index] = "https://www.jh-electronica.com" + $(element).attr("href");
+      });
+
+      /*
+      $("em .tac .fb .db .mt5").each((i, el) => {
         prices[i] = $(el).text();
       });
-      $("li .els2").each((i, el) => {
+
+      $(".h-car1-item  .els2").each((i, el) => {
         titles[i] = $(el).text();
       });
+
       $("li .pic .po-auto").each((i, el) => {
         pictures[i] = $(el).attr("src");
       });
+      */
 
       const Results = [];
 
@@ -236,10 +247,12 @@ const scrapeJHElectronica2 = () => {
           title: titles[i].replace(/\s+/g, " ").trim(),
           price: prices[i],
           picture: pictures[i],
+          link: link[i]
         };
       }
 
       console.log(Results);
+      console.log("Number of products obtained: " + Results.length);
       let JHElctronika = Results;
 
       scrapedDataJHElektronika2.push(JHElctronika);
@@ -247,7 +260,7 @@ const scrapeJHElectronica2 = () => {
 };
 let scrapedData = [];
 
-scrapeJHElectronica();
+//scrapeJHElectronica();
 scrapeJHElectronica2();
 /* scrapeGoogleSearch(); */
 
