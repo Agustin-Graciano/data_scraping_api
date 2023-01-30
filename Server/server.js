@@ -5,6 +5,7 @@ const cors = require("cors");
 const spawn = require("child_process").spawn;
 var unirest = require("unirest");
 const cheerio = require("cheerio");
+const fs = require("fs");
 
 const app = express();
 
@@ -208,54 +209,99 @@ const scrapeJHElectronica = () => {
     });
 };
 
-// let scrapedDataJHElektronika2 = [];
+let JHElctronika = [];
+let scrapedDataJHElektronika2 = [];
+const scrapeJHElectronica2 = () => {
+  return unirest
+    .get(
+      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=2000&sj=&ej=&keys="
+    )
+    .headers({
+      UserAgent: `${user_agent}`,
+    })
+    .then((response) => {
+      let $ = cheerio.load(response.body);
+      let titles = [];
+      let prices = [];
+      let pictures = [];
+      let link = [];
 
-// const scrapeJHElectronica2 = () => {
-//   return unirest
-//     .get(
-//       "https://www.jh-electronica.com/jh-products.aspx?mode=&per=80&sj=&ej=&keys="
-//     )
-//     .headers({
-//       UserAgent: `${user_agent}`,
-//     })
-//     .then((response) => {
-//       let $ = cheerio.load(response.body);
+      $('ul[class="row"]')
+        .find("li > div > div > a")
+        .each(function (index, element) {
+          titles[index] = $(element).find("h3").text();
+          pictures[index] =
+            "https://www.jh-electronica.com" +
+            $(element).find("div > img").attr("src");
+          prices[index] = $(element).find("div > em").text();
+          link[index] =
+            "https://www.jh-electronica.com" + $(element).attr("href");
+        });
 
-//       let titles = [];
-//       let prices = [];
-//       let pictures = [];
+      /*
+      $("em .tac .fb .db .mt5").each((i, el) => {
+        prices[i] = $(el).text();
+      });
 
-//       $("em .mt5").each((i, el) => {
-//         prices[i] = $(el).text();
-//       });
-//       $("li .els2").each((i, el) => {
-//         titles[i] = $(el).text();
-//       });
-//       $("li .pic .po-auto").each((i, el) => {
-//         pictures[i] = $(el).attr("src");
-//       });
+      $(".h-car1-item  .els2").each((i, el) => {
+        titles[i] = $(el).text();
+      });
 
-//       const Results = [];
+      $("li .pic .po-auto").each((i, el) => {
+        pictures[i] = $(el).attr("src");
+      });
+      */
 
-//       for (let i = 0; i < titles.length; i++) {
-//         Results[i] = {
-//           title: titles[i].replace(/\s+/g, " ").trim(),
-//           price: prices[i],
-//           picture: pictures[i],
-//         };
-//       }
+      const Results = [];
 
-//       console.log(Results);
-//       let JHElctronika = Results;
+      for (let i = 0; i < titles.length; i++) {
+        Results[i] = {
+          title: titles[i].replace(/\s+/g, " ").trim(),
+          price: prices[i],
+          picture: pictures[i],
+          link: link[i],
+        };
+      }
 
-//       scrapedDataJHElektronika2.push(JHElctronika);
-//     });
-// };
+      console.log(Results);
+      console.log("Number of products obtained: " + Results.length);
+      JHElctronika = Results;
+
+      const toObject = { ...JHElctronika };
+      console.log("My Object:", toObject);
+
+      fs.writeFile(
+        "./scrapedData.json",
+        JSON.stringify(toObject, null, 2),
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("file successfully created");
+          }
+        }
+      );
+
+      //       scrapedDataJHElektronika2.push(JHElctronika);
+    });
+};
 let scrapedData = [];
 
 scrapeJHElectronica();
-// scrapeJHElectronica2();
+scrapeJHElectronica2();
 /* scrapeGoogleSearch(); */
+
+// fs.writeFile(
+//   "./scrapedData.json",
+//   JSON.stringify(scrapeJHElectronica, null, 2),
+//   (err) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       console.log("file successfully created");
+//     }
+//   }
+// );
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {
