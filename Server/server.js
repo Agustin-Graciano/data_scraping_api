@@ -111,6 +111,7 @@ const selectRandom = () => {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0",
   ];
   var randomNumber = Math.floor(Math.random() * userAgents.length);
   return userAgents[randomNumber];
@@ -167,7 +168,9 @@ let scrapedDataGoogle = [];
 let scrapedDataJHElektronika = [];
 const scrapeJHElectronica = () => {
   return unirest
-    .get("https://www.jh-electronica.com/")
+    .get(
+      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=80&sj=&ej=&keys="
+    )
     .headers({
       UserAgent: `${user_agent}`,
     })
@@ -178,7 +181,7 @@ const scrapeJHElectronica = () => {
       let prices = [];
       let pictures = [];
 
-      $(".h-car1-item  em").each((i, el) => {
+      $("em").each((i, el) => {
         prices[i] = $(el).text();
       });
       $(".h-car1-item  .els2").each((i, el) => {
@@ -205,50 +208,53 @@ const scrapeJHElectronica = () => {
     });
 };
 
-let scrapedDataJHElektronika2 = [];
-const scrapeJHElectronica2 = () => {
-  return unirest
-    .get("https://www.jh-electronica.com/jh-products.aspx")
-    .headers({
-      UserAgent: `${user_agent}`,
-    })
-    .then((response) => {
-      let $ = cheerio.load(response.body);
+// let scrapedDataJHElektronika2 = [];
 
-      let titles = [];
-      let prices = [];
-      let pictures = [];
+// const scrapeJHElectronica2 = () => {
+//   return unirest
+//     .get(
+//       "https://www.jh-electronica.com/jh-products.aspx?mode=&per=80&sj=&ej=&keys="
+//     )
+//     .headers({
+//       UserAgent: `${user_agent}`,
+//     })
+//     .then((response) => {
+//       let $ = cheerio.load(response.body);
 
-      $("em .mt5").each((i, el) => {
-        prices[i] = $(el).text();
-      });
-      $("li .els2").each((i, el) => {
-        titles[i] = $(el).text();
-      });
-      $("li .pic .po-auto").each((i, el) => {
-        pictures[i] = $(el).attr("src");
-      });
+//       let titles = [];
+//       let prices = [];
+//       let pictures = [];
 
-      const Results = [];
+//       $("em .mt5").each((i, el) => {
+//         prices[i] = $(el).text();
+//       });
+//       $("li .els2").each((i, el) => {
+//         titles[i] = $(el).text();
+//       });
+//       $("li .pic .po-auto").each((i, el) => {
+//         pictures[i] = $(el).attr("src");
+//       });
 
-      for (let i = 0; i < titles.length; i++) {
-        Results[i] = {
-          title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i],
-          picture: pictures[i],
-        };
-      }
+//       const Results = [];
 
-      console.log(Results);
-      let JHElctronika = Results;
+//       for (let i = 0; i < titles.length; i++) {
+//         Results[i] = {
+//           title: titles[i].replace(/\s+/g, " ").trim(),
+//           price: prices[i],
+//           picture: pictures[i],
+//         };
+//       }
 
-      scrapedDataJHElektronika2.push(JHElctronika);
-    });
-};
+//       console.log(Results);
+//       let JHElctronika = Results;
+
+//       scrapedDataJHElektronika2.push(JHElctronika);
+//     });
+// };
 let scrapedData = [];
 
 scrapeJHElectronica();
-scrapeJHElectronica2();
+// scrapeJHElectronica2();
 /* scrapeGoogleSearch(); */
 
 //Making the API rsquest/respose

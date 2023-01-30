@@ -128,6 +128,7 @@ function App() {
         setVisualOutput(filterResult[0]))
       : setOutput("No product found");
     console.log(filterResult);
+    console.log(visualOutput);
   };
 
   return (
