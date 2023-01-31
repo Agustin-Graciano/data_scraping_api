@@ -5,6 +5,7 @@ const cors = require("cors");
 const spawn = require("child_process").spawn;
 var unirest = require("unirest");
 const cheerio = require("cheerio");
+const fs = require("fs");
 
 const app = express();
 
@@ -111,6 +112,7 @@ const selectRandom = () => {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0",
   ];
   var randomNumber = Math.floor(Math.random() * userAgents.length);
   return userAgents[randomNumber];
@@ -167,7 +169,9 @@ let scrapedDataGoogle = [];
 let scrapedDataJHElektronika = [];
 const scrapeJHElectronica = () => {
   return unirest
-    .get("https://www.jh-electronica.com/")
+    .get(
+      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=80&sj=&ej=&keys="
+    )
     .headers({
       UserAgent: `${user_agent}`,
     })
@@ -178,7 +182,7 @@ const scrapeJHElectronica = () => {
       let prices = [];
       let pictures = [];
 
-      $(".h-car1-item  em").each((i, el) => {
+      $("em").each((i, el) => {
         prices[i] = $(el).text();
       });
       $(".h-car1-item  .els2").each((i, el) => {
@@ -205,6 +209,7 @@ const scrapeJHElectronica = () => {
     });
 };
 
+let JHElctronika = [];
 let scrapedDataJHElektronika2 = [];
 function scrapeJHElectroPageNumbers(PageIndex) {
     return unirest
@@ -260,7 +265,7 @@ function scrapeJHElectroPageNumbers(PageIndex) {
 }
 const scrapeJHElectronica2 = () => {
     return unirest
-    .get("https://www.jh-electronica.com/jh-products.aspx?current=1&mode=&per=800&sj=&ej=&keys=")
+    .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=16&sj=&ej=&keys=")
     .headers({
       UserAgent: `${user_agent}`
     })
@@ -271,12 +276,17 @@ const scrapeJHElectronica2 = () => {
       let pictures = [];
       let link = [];
 
-      $('ul[class="row"]').find('li > div > div > a').each(function (index, element) {
-          titles[index] = $(element).find('h3').text();
-          pictures[index] = "https://www.jh-electronica.com" + $(element).find('div > img').attr("src");
-          prices[index] = $(element).find('div > em').text();
-          link[index] = "https://www.jh-electronica.com" + $(element).attr("href");
-      });
+      $('ul[class="row"]')
+        .find("li > div > div > a")
+        .each(function (index, element) {
+          titles[index] = $(element).find("h3").text();
+          pictures[index] =
+            "https://www.jh-electronica.com" +
+            $(element).find("div > img").attr("src");
+          prices[index] = $(element).find("div > em").text();
+          link[index] =
+            "https://www.jh-electronica.com" + $(element).attr("href");
+        });
 
       /*
       $("em .tac .fb .db .mt5").each((i, el) => {
@@ -305,17 +315,45 @@ const scrapeJHElectronica2 = () => {
 
       console.log(Results);
       console.log("Number of products obtained: " + Results.length);
-      let JHElctronika = Results;
+      JHElctronika = Results;
 
-      scrapedDataJHElektronika2.push(JHElctronika);
+      const toObject = { ...JHElctronika };
+      console.log("My Object:", toObject);
+
+      fs.writeFile(
+        "./scrapedData.json",
+        JSON.stringify(toObject, null, 2),
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("file successfully created");
+          }
+        }
+      );
+
+      //       scrapedDataJHElektronika2.push(JHElctronika);
     });
 };
 let scrapedData = [];
 
+//scrapeJHElectronica();
 scrapeJHElectronica2();
 //scrapeJHElectroPageNumbers(1);
 //scrapeJHElectroPageNumbers(2);
 /* scrapeGoogleSearch(); */
+
+// fs.writeFile(
+//   "./scrapedData.json",
+//   JSON.stringify(scrapeJHElectronica, null, 2),
+//   (err) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       console.log("file successfully created");
+//     }
+//   }
+// );
 
 //Making the API rsquest/respose
 app.get("/api", (req, res) => {

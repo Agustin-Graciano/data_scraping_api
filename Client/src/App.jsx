@@ -46,6 +46,7 @@ function App() {
         .then((response) => response.json())
         .then((data) => {
           setData(data);
+          console.log(data.length);
         });
     };
 
@@ -126,6 +127,7 @@ function App() {
         setOutputObj(filterResult[0]))
       : setOutput("No product found");
     console.log(filterResult);
+    console.log(visualOutput);
   };
 
   return (
