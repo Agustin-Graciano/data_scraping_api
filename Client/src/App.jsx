@@ -45,8 +45,11 @@ function App() {
       await fetch("http://localhost:5000/api")
         .then((response) => response.json())
         .then((data) => {
-          setData(data);
-          console.log(data.length);
+            setData(data);
+            console.log("Hello? It's me.");
+            console.log(data.length);
+            console.log(data);
+            console.log(data.type);
         });
     };
 

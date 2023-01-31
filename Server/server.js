@@ -11,7 +11,7 @@ const sql = require("mssql");
 const app = express();
 
 const tableName = "JHElectronica";
-
+const primaryKey = "ProductIndex";
 app.use(
     cors({
         origin: "*"
@@ -38,9 +38,10 @@ async function getAllProducts() {
     try {
         let pool = await sql.connect(config);
         let result1 = await pool.request().query(`select * from ${tableName}`);
-        console.log(`Found following products: ${JSON.stringify(result1.recordset, null, 2)}`);
+        let finalresult = JSON.stringify(result1.recordset, null, 2);
+        console.log(`Found following products: ${finalresult}`);
         sql.close();
-        return result1.recordset;
+        return result1;
     } catch (error) {
         console.log(error);
         sql.close();
@@ -64,23 +65,60 @@ async function getSpecificProduct(Index) {
 }
 //sends an obj and its index number and sets it in the database. TODO: make it update the record in the database if it already exists (based on index, index is primary key.)
 async function sendProduct(obj, objIndex) {
-    {
-        try {
-            let pool = await sql.connect(config);
-            let result1 = await pool.request().query(`insert into ${tableName} values(${objIndex}, ${obj.ProductName}, ${obj.Price}, ${obj.Picture}, ${obj.ProductLink})`);
-            console.log(result1);
-            sql.close();
-        } catch (error) {
-            console.log(error);
-            sql.close();
-        }
+    obj.ProductName = `\'${obj.ProductName}\'`;
+    obj.Price = `\'${obj.Price}\'`;
+    obj.Picture = `\'${obj.Picture}\'`;
+    obj.ProductLink = `\'${obj.ProductLink}\'`;
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(`insert into ${tableName} values(${objIndex}, ${obj.ProductName}, ${obj.Price}, ${obj.Picture}, ${obj.ProductLink})`);
+        console.log(result1);
+        sql.close();
+    } catch (error) {
+        console.log(error);
+        sql.close();
     }
+}
+
+async function getPrimaryKeys() {
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(`select ${primaryKey} from ${tableName}`);
+        console.log(result1.recordset);
+        sql.close();
+        return result1;
+    } catch (error) {
+        console.log(error);
+        sql.close();
+    }
+}
+
+async function sendMultipleProducts(objArray) {
+    let inserter = `insert into ${tableName} values `;
+    let primaryKeys = getPrimaryKeys();
+    objArray.forEach((element, index) => inserter = inserter + (`\(${index + 1}, \'${element.ProductName}\', \'${element.Price}\', \'${element.Picture}\', \'${element.ProductLink}\'\), `));
+    inserter = inserter.substring(0, inserter.length - 2) + '\;';
+    console.log(inserter);
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(inserter);
+        console.log(result1);
+        sql.close();
+    } catch (error) {
+        console.log(error);
+        sql.close();
+    }
+    
 }
 
 getAllProducts();
 getSpecificProduct(2);
-let testObject = { ProductName: "'TestProduct'", Price: "'0.01'", Picture: "'five'", ProductLink: "'sixteen'" };
-
+//let testObject = { ProductName: "TestProductAgainDiff", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
+//let testObject2 = { ProductName: "TestProductAgain", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
+//let testObject3 = { ProductName: "TestProductDiff", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
+//let testList = [testObject, testObject2, testObject3];
+//sendMultipleProducts(testList);
+getPrimaryKeys();
 
 app.use(
   cors({
@@ -271,7 +309,7 @@ const scrapeJHElectronica = () => {
         Results[i] = {
           title: titles[i].replace(/\s+/g, " ").trim(),
           price: prices[i].replace(/\s+/g, " ").trim(),
-          picture: pictures[i],
+          picture: pictures[i]
         };
       }
 
@@ -412,7 +450,7 @@ let scrapedData = [];
 
 //scrapeJHElectronica();
 
-//scrapeJHElectronica2(); important do not forget. TODO: Uncomment this and integrate database support with the function - Like grabbing data from the database instead of scraping and uploading scraped data to the database.
+//scrapeJHElectronica2();
 
 //scrapeJHElectroPageNumbers(1);
 //scrapeJHElectroPageNumbers(2);
@@ -435,7 +473,10 @@ app.get("/api", (req, res) => {
   if (scrapedData.length == 0) {
     // Select the variable of use don't use concat
     //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-    scrapedData = scrapedDataJHElektronika2;
+    scrapedData = getAllProducts();
+      console.log(scrapedData);
+      console.log(scrapedData.length);
+      console.log(scrapedData.type);
   }
   res.json(scrapedData);
 });
