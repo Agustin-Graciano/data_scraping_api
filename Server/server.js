@@ -209,12 +209,12 @@ const scrapeJHElectronica = () => {
     });
 };
 
-let JHElctronika = [];
+let JHElectronika = [];
 let scrapedDataJHElektronika2 = [];
 const scrapeJHElectronica2 = () => {
   return unirest
     .get(
-      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=2000&sj=&ej=&keys="
+      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=5068&sj=&ej=&keys="
     )
     .headers({
       UserAgent: `${user_agent}`,
@@ -265,22 +265,29 @@ const scrapeJHElectronica2 = () => {
 
       console.log(Results);
       console.log("Number of products obtained: " + Results.length);
-      JHElctronika = Results;
+      JHElectronika = Results;
 
-      const toObject = { ...JHElctronika };
-      console.log("My Object:", toObject);
-
-      fs.writeFile(
-        "./scrapedData.json",
-        JSON.stringify(toObject, null, 2),
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("file successfully created");
-          }
+      const translateIntoJSON = () => {
+        if (Results.length !== 0) {
+          JHElectronicaProductObject = {
+            Products: JHElectronika,
+          };
+          fs.writeFile(
+            "./scrapedData2.json",
+            JSON.stringify(JHElectronicaProductObject, null, 2),
+            (err) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log("file successfully created");
+              }
+            }
+          );
+        } else {
+          console.log("Action impossible due to lack of information");
         }
-      );
+      };
+      translateIntoJSON();
 
       //       scrapedDataJHElektronika2.push(JHElctronika);
     });
