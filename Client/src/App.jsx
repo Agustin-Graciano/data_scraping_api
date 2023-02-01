@@ -11,9 +11,11 @@ function App() {
   const [outputObj, setOutputObj] = useState({});
   const [output, setOutput] = useState("");
   const [amount, setAmount] = useState("");
-
+  
   var [formDate, setformDate] = useState("");
   var [formResult, setformResult] = useState("");
+
+  var FirstBoot = true;
 
   //Function to set the earliest you would want deliveries to be available.
   function setMinDays(deliveryDate, minDays) {
@@ -41,19 +43,20 @@ function App() {
   //useEffect
   useEffect(() => {
     //Getting the scraped data from the server side
-    const fetchData = async () => {
-      await fetch("http://localhost:5000/api")
-        .then((response) => response.json())
-        .then((data) => {
-            setData(data);
-            console.log("Hello? It's me.");
-            console.log(data.length);
-            console.log(data);
-            console.log(data.type);
-        });
-    };
-
-    fetchData();
+      if (FirstBoot) {
+          const fetchData = async () => {
+          await fetch("http://localhost:5000/api")
+            .then((response) => response.json())
+            .then((data) => {
+                setData(data);
+                //console.log(data.length);
+                //console.log(data);
+            });
+          };
+          fetchData();
+          FirstBoot = false;
+      }
+    
   }, []);
   //Does the posting that is expected to happen when running handlePost.
   //Also checks date for whether it's anything, and whether it's after the earliest delivery date.
@@ -62,13 +65,13 @@ function App() {
     if (formDate != "" && outputObj && isStringInteger(amount)) {
       //adjust the 7 for the amount of minimum weekdays you would want.
       var minDaysDelivery = 7;
-      console.log(outputObj);
-      var price = outputObj.price.slice(1);
-      var currency = outputObj.price.substr(0, 1);
+      //console.log(outputObj);
+      var price = outputObj.Price.slice(1);
+      var currency = outputObj.Price.substr(0, 1);
       if (currency == "$") {
         currency = "USD";
       }
-      console.log(price);
+      //console.log(price);
       if (setMinDays(formDate, minDaysDelivery)) {
         fetch("http://localhost:5000/pyth", {
           method: "POST",
@@ -76,7 +79,7 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            Price: outputObj.price.slice(1),
+            Price: outputObj.Price.slice(1),
             Amount: amount,
             Currency: currency,
             OutsideEbits: "True",
@@ -89,7 +92,7 @@ function App() {
             setformResult(
               "Approx. " + parseFloat(formResult.replace(",", ".")) + " dkk.-"
             );
-            console.log("Received: ", parseFloat(formResult.replace(",", ".")));
+            //console.log("Received: ", parseFloat(formResult.replace(",", ".")));
           });
       } else {
         setformResult(
@@ -118,9 +121,10 @@ function App() {
   };
 
   //Data filtering function (TRIGGERED BY A BUTTON)
+
   const filterData = (data, inputCriteria) => {
     const filterResult = data.filter(
-      (object) => object.title.toLowerCase() === inputCriteria.toLowerCase()
+      (object) => object.ProductName.toLowerCase() === inputCriteria.toLowerCase()
     );
     //Checks if there is a result from the filtering
     filterResult.length !== 0
@@ -128,8 +132,8 @@ function App() {
         (setOutput(filterResult[0]?.title),
         setOutputObj(filterResult[0]))
       : setOutput("No product found");
-    console.log(filterResult);
-    console.log(outputObj);
+    //console.log(filterResult);
+    //console.log(outputObj);
   };
 
   return (
@@ -158,11 +162,11 @@ function App() {
             <p>
               <strong>{formResult}</strong>
             </p>
-            {outputObj.title !== undefined ? (
+            {outputObj.ProductName !== undefined ? (
               <OutPutCard
-                title={outputObj.title}
-                price={outputObj.price}
-                img={outputObj.picture}
+                title={outputObj.ProductName}
+                price={outputObj.Price}
+                img={outputObj.PictureLink}
               />
             ) : (
               <h2>No product with that name, check the spelling</h2>

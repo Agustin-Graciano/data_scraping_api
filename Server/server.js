@@ -38,13 +38,27 @@ async function getAllProducts() {
     try {
         let pool = await sql.connect(config);
         let result1 = await pool.request().query(`select * from ${tableName}`);
-        console.log(`Found following amount of products: ${result1.recordset.length}`);
         sql.close();
-        return result1.recordset;
+        var array = [];
+        for (var key in result1.recordset) {
+            if (result1.recordset.hasOwnProperty(key)) {
+                var item = result1.recordset[key];
+                array.push({
+                    ProductIndex: item.ProductIndex,
+                    ProductName: item.ProductName,
+                    Price: item.Price,
+                    PictureLink: item.PictureLink,
+                    ProductLink: item.ProductLink
+                });
+            }
+        }
+        console.log(`Found following amount of products: ${array.length}`);
+        return array;
     } catch (error) {
         console.log(error);
         sql.close();
     }
+    
 }
 //receives a specific product from the database based on its productname. 
 async function getSpecificProductByName(productName) {
@@ -521,15 +535,17 @@ function UploadJsonFile() {
 //scrapeJHElectroPageNumbers(1);
 //scrapeJHElectroPageNumbers(2);
 /* scrapeGoogleSearch(); */
-
+async function asyncRunner(res) {
+    if (scrapedData.length == 0) {
+        //sets scrapedData to be an array of all the products in the database.
+        scrapedData = await getAllProducts();
+    }
+    res.json(scrapedData);
+}
 
 //Making the API request/response
 app.get("/api", (req, res) => {
-  if (scrapedData.length == 0) {
-    // Select the variable of use don't use concat
-    //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-      scrapedData = getAllProducts();
-    }
+    asyncRunner(res);
 });
 
 //Connection to python
