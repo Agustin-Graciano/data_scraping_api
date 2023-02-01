@@ -38,22 +38,33 @@ async function getAllProducts() {
     try {
         let pool = await sql.connect(config);
         let result1 = await pool.request().query(`select * from ${tableName}`);
-        let finalresult = JSON.stringify(result1.recordset, null, 2);
-        console.log(`Found following products: ${finalresult}`);
+        console.log(`Found following amount of products: ${result1.recordset.length}`);
         sql.close();
-        return result1;
+        return result1.recordset;
+    } catch (error) {
+        console.log(error);
+        sql.close();
+    }
+}
+//receives a specific product from the database based on its productname. 
+async function getSpecificProductByName(productName) {
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${productName}`);
+        console.log(`Found following product: ${JSON.stringify(result1.recordset, null, 2)}`);
+        sql.close();
+        return result1.recordset;
     } catch (error) {
         console.log(error);
         sql.close();
         return error;
     }
 }
-
-//receives a specific product from the database based on it's index number. 
-async function getSpecificProduct(Index) {
+//receives a specific product from the database based on its index number. 
+async function getSpecificProductByID(index) {
     try {
         let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${Index}`);
+        let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${index}`);
         console.log(`Found following product: ${JSON.stringify(result1.recordset, null, 2)}`);
         sql.close();
         return result1.recordset;
@@ -64,20 +75,22 @@ async function getSpecificProduct(Index) {
     }
 }
 //sends an obj and its index number and sets it in the database. TODO: make it update the record in the database if it already exists (based on index, index is primary key.)
-async function sendProduct(obj, objIndex) {
+async function sendProduct(obj) {
+    obj.ProductIndex = `\'${obj.ProductIndex}\'`;
     obj.ProductName = `\'${obj.ProductName}\'`;
     obj.Price = `\'${obj.Price}\'`;
-    obj.Picture = `\'${obj.Picture}\'`;
+    obj.PictureLink = `\'${obj.PictureLink}\'`;
     obj.ProductLink = `\'${obj.ProductLink}\'`;
     try {
         let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`insert into ${tableName} values(${objIndex}, ${obj.ProductName}, ${obj.Price}, ${obj.Picture}, ${obj.ProductLink})`);
+        let result1 = await pool.request().query(`insert into ${tableName} values(${obj.ProductIndex}, ${obj.ProductName}, ${obj.Price}, ${obj.PictureLink}, ${obj.ProductLink})`);
         console.log(result1);
         sql.close();
     } catch (error) {
         console.log(error);
         sql.close();
     }
+    scrapedData = [];
 }
 
 async function getPrimaryKeys() {
@@ -93,12 +106,10 @@ async function getPrimaryKeys() {
     }
 }
 
-async function sendMultipleProducts(objArray) {
+async function sendmultiproductspart(objArray) {
     let inserter = `insert into ${tableName} values `;
-    let primaryKeys = getPrimaryKeys();
-    objArray.forEach((element, index) => inserter = inserter + (`\(${index + 1}, \'${element.ProductName}\', \'${element.Price}\', \'${element.Picture}\', \'${element.ProductLink}\'\), `));
+    objArray.forEach((element, index) => inserter = inserter + (`\(${element.ProductIndex}, \'${element.ProductName}\', \'${element.Price}\', \'${element.PictureLink}\', \'${element.ProductLink}\'\), `));
     inserter = inserter.substring(0, inserter.length - 2) + '\;';
-    console.log(inserter);
     try {
         let pool = await sql.connect(config);
         let result1 = await pool.request().query(inserter);
@@ -108,17 +119,41 @@ async function sendMultipleProducts(objArray) {
         console.log(error);
         sql.close();
     }
-    
+    scrapedData = [];
 }
 
-getAllProducts();
-getSpecificProduct(2);
-//let testObject = { ProductName: "TestProductAgainDiff", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
-//let testObject2 = { ProductName: "TestProductAgain", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
-//let testObject3 = { ProductName: "TestProductDiff", Price: "$0.10", Picture: "five", ProductLink: "sixteen" };
+async function sendMultipleProducts(objArray) {
+    objArrayArray = [];
+    while (objArray.length > 1000) {
+        objArrayArray.push(objArray.slice(0, 999));
+        objArray = objArray.slice(999);
+    }
+    objArrayArray.push(objArray);
+    //console.log("debuggy: " + objArrayArray[0][0] + objArrayArray[1][0] + objArrayArray[2][0] + objArrayArray[3][0]);
+    objArrayArray.forEach((arr) => sendmultiproductspart(arr));
+}
+
+async function deleteAllProducts() {
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(`truncate table ${tableName}`);
+        console.log(result1);
+        sql.close();
+    } catch (error) {
+        console.log(error);
+        sql.close();
+    }
+    scrapedData = [];
+}
+
+//getAllProducts();
+//getSpecificProductByID(2);
+//let testObject = { ProductName: "TestProductAgainDiff", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
+//let testObject2 = { ProductName: "TestProductAgain", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
+//let testObject3 = { ProductName: "TestProductDiff", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
 //let testList = [testObject, testObject2, testObject3];
 //sendMultipleProducts(testList);
-getPrimaryKeys();
+//getPrimaryKeys();
 
 app.use(
   cors({
@@ -374,9 +409,9 @@ function scrapeJHElectroPageNumbers(PageIndex) {
             scrapedDataJHElektronika2.push(JHElctronika);
         });
 }
-const scrapeJHElectronica2 = () => {
+const scrapeJHElectronica2 = async () => {
     return unirest
-    .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=16&sj=&ej=&keys=")
+    .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=5068&sj=&ej=&keys=")
     .headers({
       UserAgent: `${user_agent}`
     })
@@ -414,13 +449,15 @@ const scrapeJHElectronica2 = () => {
       */
 
       const Results = [];
-
+      //Would be cool to eventually figure out a proper escape character that can send quotationmarks as a query
+      //but for now any quotationmarks are just removed because queries think the query is over when it reaches a quotation mark :C
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
-          title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i],
-          picture: pictures[i],
-          link: link[i]
+          ProductIndex: i+1,
+          ProductName: titles[i].replace(/\s+/g, " ").trim().replace(/\"/g, '\"\"').replace(/\'/g, "\'\'"),
+          Price: prices[i],
+          PictureLink: pictures[i],
+          ProductLink: link[i]
         };
       }
 
@@ -442,43 +479,57 @@ const scrapeJHElectronica2 = () => {
           }
         }
       );
-
-        scrapedDataJHElektronika2.push(JHElctronika);
+        
+        return new Promise((resolve, reject) => scrapedDataJHElektronika2.push(JHElctronika));
     });
 };
 let scrapedData = [];
 
-//scrapeJHElectronica();
+//Problem: this function returns chinese characters as ? in the database.
+function UploadJsonFile() {
+    let jsonFileRead = fs.readFileSync(`scrapedData.json`);
+    let parsedFile = JSON.parse(jsonFileRead);
+    var array = [];
+    for (var key in parsedFile) {
+        if (parsedFile.hasOwnProperty(key)) {
+            var item = parsedFile[key];
+            array.push({
+                ProductIndex: item.ProductIndex,
+                ProductName: item.ProductName,
+                Price: item.Price,
+                PictureLink: item.PictureLink,
+                ProductLink: item.ProductLink
+            });
+        }
+    };
+    //sendProduct(array[1483]);
+    
+    sendMultipleProducts(array);
 
+    scrapedData = [];
+}
+
+// use these V if you want to upload the current Json File found in the same folder.
+//deleteAllProducts();
+//UploadJsonFile();
+
+// use this V if you want to scrape new data and save it to a Json file:
 //scrapeJHElectronica2();
+
+
 
 //scrapeJHElectroPageNumbers(1);
 //scrapeJHElectroPageNumbers(2);
 /* scrapeGoogleSearch(); */
 
-// fs.writeFile(
-//   "./scrapedData.json",
-//   JSON.stringify(scrapeJHElectronica, null, 2),
-//   (err) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       console.log("file successfully created");
-//     }
-//   }
-// );
 
-//Making the API rsquest/respose
+//Making the API request/response
 app.get("/api", (req, res) => {
   if (scrapedData.length == 0) {
     // Select the variable of use don't use concat
     //Actually, DO use concat, but only if you are trying to combine two arrays and not a function and an array :p
-    scrapedData = getAllProducts();
-      console.log(scrapedData);
-      console.log(scrapedData.length);
-      console.log(scrapedData.type);
-  }
-  res.json(scrapedData);
+      scrapedData = getAllProducts();
+    }
 });
 
 //Connection to python

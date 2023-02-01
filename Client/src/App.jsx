@@ -59,7 +59,6 @@ function App() {
   //Also checks date for whether it's anything, and whether it's after the earliest delivery date.
   const PostForm = () => {
     setformResult("");
-    console.log(amount);
     if (formDate != "" && outputObj && isStringInteger(amount)) {
       //adjust the 7 for the amount of minimum weekdays you would want.
       var minDaysDelivery = 7;
