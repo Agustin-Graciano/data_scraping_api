@@ -288,8 +288,6 @@ const scrapeJHElectronica2 = () => {
         }
       };
       translateIntoJSON();
-
-      //       scrapedDataJHElektronika2.push(JHElctronika);
     });
 };
 let scrapedData = [];
