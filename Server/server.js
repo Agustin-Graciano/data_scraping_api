@@ -325,7 +325,7 @@ let scrapedDataGoogle = [];
       console.log(Results);
     });
 }; */
-
+/*
 let scrapedDataJHElektronika = [];
 const scrapeJHElectronica = () => {
   return unirest
@@ -368,9 +368,11 @@ const scrapeJHElectronica = () => {
       scrapedDataJHElektronika.push(JHElctronika);
     });
 };
+*/
 
 let JHElctronika = [];
 let scrapedDataJHElektronika2 = [];
+/*
 function scrapeJHElectroPageNumbers(PageIndex) {
     return unirest
         .get('https://www.jh-electronica.com/jh-products.aspx?current=' + PageIndex + '&mode=&per=1&sj=&ej=&keys=')
@@ -391,19 +393,19 @@ function scrapeJHElectroPageNumbers(PageIndex) {
                 link[index] = "https://www.jh-electronica.com" + $(element).attr("href");
             });
 
-            /*
-            $("em .tac .fb .db .mt5").each((i, el) => {
-              prices[i] = $(el).text();
-            });
+            
+            //$("em .tac .fb .db .mt5").each((i, el) => {
+              //prices[i] = $(el).text();
+            //});
       
-            $(".h-car1-item  .els2").each((i, el) => {
-              titles[i] = $(el).text();
-            });
+            //$(".h-car1-item  .els2").each((i, el) => {
+              //titles[i] = $(el).text();
+            //});
       
-            $("li .pic .po-auto").each((i, el) => {
-              pictures[i] = $(el).attr("src");
-            });
-            */
+            //$("li .pic .po-auto").each((i, el) => {
+              //pictures[i] = $(el).attr("src");
+            //});
+            
 
             const Results = [];
 
@@ -423,6 +425,7 @@ function scrapeJHElectroPageNumbers(PageIndex) {
             scrapedDataJHElektronika2.push(JHElctronika);
         });
 }
+*/
 const scrapeJHElectronica2 = async () => {
     return unirest
     .get("https://www.jh-electronica.com/jh-products.aspx?mode=&per=5068&sj=&ej=&keys=")
@@ -463,8 +466,6 @@ const scrapeJHElectronica2 = async () => {
       */
 
       const Results = [];
-      //Would be cool to eventually figure out a proper escape character that can send quotationmarks as a query
-      //but for now any quotationmarks are just removed because queries think the query is over when it reaches a quotation mark :C
       for (let i = 0; i < titles.length; i++) {
         Results[i] = {
           ProductIndex: i+1,
@@ -543,6 +544,50 @@ async function asyncRunner(res) {
     res.json(scrapedData);
 }
 
+async function dataScraper(ProductLink) {
+    //script type="text/javascript"
+    return unirest
+        .get(ProductLink)
+        .headers({
+            UserAgent: `${user_agent}`
+        })
+        .then((response) => {
+            let $ = cheerio.load(response.body);
+            let entireDataBlock = $('div[class="infos baf pt25 pb35 pl25 pr25"]').find('script[type="text/javascript"]')
+                .text();
+
+            return null;
+        });
+}
+
+async function variationFinder(ProductLink) {
+    return unirest
+        .get(ProductLink)
+        .headers({
+            UserAgent: `${user_agent}`
+        })
+        .then((response) => {
+            let $ = cheerio.load(response.body);
+            let price = $('em[class="db mt5"]')
+                .find('i[class="cxbmemberprice"]').text().replace(/\s+/g, " ").trim();
+            if (price.includes("~")) {
+                return true;
+            }
+            return false;
+        });
+}
+
+async function variationGetter() {
+    let link = "https://www.jh-electronica.com/lilygo-t-internet-poe-esp32-ethernet-adapter-downloader.shtml";
+    //let link = "https://www.jh-electronica.com/lilygo-t-sam21-atsamd21-mcu-for-arduino.shtml";
+    //let doesProductHaveVariations = await variationFinder(link);
+    //console.log(doesProductHaveVariations);
+    let obtainVariationsData = await dataScraper(link);
+    console.log(obtainVariationsData);
+}
+
+variationGetter();
+
 //Making the API request/response
 app.get("/api", (req, res) => {
     asyncRunner(res);
@@ -566,7 +611,7 @@ app.post("/pyth", (req, res, next) => {
     currency,
     outsideEbits,
     outsideEU,
-    dateToBeDelivered,
+    dateToBeDelivered
   ]);
   python3.stdout.on("data", function (data) {
     dataToSend = data.toString();
