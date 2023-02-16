@@ -4,18 +4,18 @@ from requests_cache import CachedSession
 import json
 
 ProfitMarginDec = 1.3
-session = CachedSession(expire_after=datetime.timedelta(days=7))
+session = CachedSession(expire_after=datetime.timedelta(days=1))
 
 
 #Returns the cost of an Item based on it's native cost in it's native currency per Item.
 def PricePerItem(BasePrice, Amount):
     return BasePrice/Amount
 
-#Uses forex_python to grab exchange rate from specified currency to DKK, and adds 5% for Conversion Fee.
-#Forex_python gets their data from https://theforexapi.com/, which (supposedly) updates daily at 3PM CET.
-#Supports: USD, JPY, BGN, CZK, DKK, GBP, EUR, HUF, PLN, RON, SEK, CHF, ISK, NOK, TRY,
-#AUD, BRL, CAD, CNY, HKD, IDR, INR, KRW, MXN, MYR, NZD, PHP, SGD, THB, ZAR.
-#Eventually I should make this Cache results for 24 hours.
+#Uses a get request to grab exchange rates for DKK to any other coin, and adds 5% (1.05) for Conversion Fee.
+#Data is obtained from https://theforexapi.com/, which (supposedly) updates daily at 3PM CET.
+#Supports: USD, JPY, BGN, CZK, GBP, EUR, HUF, PLN, RON, SEK, CHF, ISK, NOK, TRY,
+#AUD, BRL, CAD, CNY, HKD, IDR, INR, KRW, MXN, MYR, NZD, PHP, SGD, THB, ZAR. And ofc DKK, although DKK to DKK conversion is silly.
+#Now features caching for 1 day (customizable at top).
 def CurrencyConversion(ExchangeCurrency):
     response = session.get('https://theforexapi.com/api/latest?base=DKK')
     response_dict = json.loads(response.text)
