@@ -325,97 +325,14 @@ const selectRandom = () => {
 
 let user_agent = selectRandom();
 
-let scrapedDataGoogle = [];
+//Sets the database values according to the json file "scrapedData.json" found in the same folder. Clears the entire table first.
+function UploadJsonFile() {
+    let jsonFileRead = fs.readFileSync(`scrapedData.json`);
+    let parsedFile = JSON.parse(jsonFileRead);
+    sendMultipleProducts(parsedFile.Products, tableName1);
+}
 
-/*  const scrapeGoogleSearch = () => {
-  return unirest
-    .get("https://www.google.com/search?q=AliExpress+&sxsrf")
-    .headers({
-      "User-Agent": `${user_agent}`
-    })
-    .then((response) => {
-      let $ = cheerio.load(response.body);
-
-      let titles = [];
-      let links = [];
-      let snippets = [];
-      let displayedLinks = [];
-
-      $(".yuRUbf > a > h3").each((i, el) => {
-        titles[i] = $(el).text();
-      });
-
-      $(".yuRUbf > a").each((i, el) => {
-        links[i] = $(el).text();
-      });
-      $(".g .VwiC3b").each((i, el) => {
-        snippets[i] = $(el).text();
-      });
-      $(".g .yuRUbf .NJjxre .tjvczx").each((i, el) => {
-        displayedLinks[i] = $(el).text();
-      });
-      const Results = [];
-
-      for (let i = 0; i < titles.length; i++) {
-        Results[i] = {
-          title: titles[i],
-          link: links[i],
-          snippet: snippets[i],
-          displayedLink: displayedLinks[i],
-        };
-      }
-
-      let GoogleSearchScrape = Results;
-      scrapedDataGoogle.push(GoogleSearchScrape);
-      console.log(Results);
-    });
-}; */
-/*
-let scrapedDataJHElectronica = [];
-const scrapeJHElectronica = () => {
-  return unirest
-    .get(
-      "https://www.jh-electronica.com/jh-products.aspx?mode=&per=80&sj=&ej=&keys="
-    )
-    .headers({
-      UserAgent: `${user_agent}`,
-    })
-    .then((response) => {
-      let $ = cheerio.load(response.body);
-
-      let titles = [];
-      let prices = [];
-      let pictures = [];
-
-      $("em").each((i, el) => {
-        prices[i] = $(el).text();
-      });
-      $(".h-car1-item  .els2").each((i, el) => {
-        titles[i] = $(el).text();
-      });
-      $(".pic .po-auto").each((i, el) => {
-        pictures[i] = $(el).attr("src");
-      });
-
-      const Results = [];
-
-      for (let i = 0; i < titles.length; i++) {
-        Results[i] = {
-          title: titles[i].replace(/\s+/g, " ").trim(),
-          price: prices[i].replace(/\s+/g, " ").trim(),
-          picture: pictures[i]
-        };
-      }
-
-      console.log(Results);
-      let JHElectronica = Results;
-
-      scrapedDataJHElectronica.push(JHElectronica);
-    });
-};
-*/
-
-
+//ScrapesJHElectronica and returns all the products names, prices, picturelinks and productlinks in an array, that gets converted to Json.
 const scrapeJHElectronicaToJSON = async () => {
     return unirest
         .get("https://www.jh-electronica.com/ProductList.aspx?mode=&per=1&sj=&ej=&keys=")
@@ -465,9 +382,9 @@ const scrapeJHElectronicaToJSON = async () => {
                     });
                     */
 
-                    const Results = [];
+                    var results = [];
                     for (let i = 0; i < titles.length; i++) {
-                        Results[i] = {
+                        results[i] = {
                             ProductIndex: i + 1,
                             ProductName: titles[i].replace(/\s+/g, " ").trim().replace(/\"/g, '\"\"').replace(/\'/g, "\'\'"),
                             Price: prices[i],
@@ -476,17 +393,17 @@ const scrapeJHElectronicaToJSON = async () => {
                         };
                     }
 
-                    console.log(Results);
-                    console.log("Number of products obtained: " + Results.length);
+                    console.log(results);
+                    console.log("Number of products obtained: " + results.length);
 
-                    var translateIntoJSON = (arrToFile) => {
+                    var translateIntoJson = (arrToFile) => {
                         if (arrToFile.length !== 0) {
-                            let JHElectronicaProductObject = {
+                            let jhElectronicaProductObject = {
                                 Products: arrToFile,
                             };
                             fs.writeFile(
                                 "./scrapedData.json",
-                                JSON.stringify(JHElectronicaProductObject, null, 2),
+                                JSON.stringify(jhElectronicaProductObject, null, 2),
                                 (err) => {
                                     if (err) {
                                         console.log(err);
@@ -499,14 +416,14 @@ const scrapeJHElectronicaToJSON = async () => {
                             console.log("Action impossible due to lack of information");
                         }
                     };
-                    translateIntoJSON(Results);
+                    translateIntoJson(results);
                 });
         });
 };
 
 
 //scrapeJHElectronica();
-scrapeJHElectronicaToJSON();
+//scrapeJHElectronicaToJSON();
 /* scrapeGoogleSearch(); */
 //Made just to have an async handler, for when get /api.
 async function asyncRunner(res) {
@@ -804,8 +721,6 @@ app.listen(5000, () => {
 
 // for getting all the database table1s values, and scraping them for variations and putting that result into database table2 V WARNING: Will delete current records, and also will take several hours just to grab the data.
 //GetandSetDatabaseVariation();
-
-
 
 
 
