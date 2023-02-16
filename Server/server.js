@@ -145,7 +145,7 @@ async function sendMultiProductsPart(objArray, tableName) {
         }
         inserter = inserter.substring(0, inserter.length - 2) + '\;';
         inserterArr.push(inserter);
-        console.log(arr.length);
+        //console.log(arr.length);
     });
 
     //console.log("the length of things: " + objArray.length);
@@ -173,7 +173,13 @@ async function sendMultipleProducts(objArray, tableName) {
     var arrayNum = 0;
     var lastArrayNum = 0;
     await objArray.forEach((obj, i) => {
-        currentLength = objArray[i][1].length;
+        if (tableName == tableName2) {
+            currentLength = obj[1].length;
+        }
+        else if (tableName == tableName1) {
+            currentLength = 1;
+        }
+
         arrayNum = i;
         lengths += currentLength;
         //cap of 1000 rows per insert statement. Set to 600 instead, because my function wrongly saves a value to be used for the next one, where it appends something before it checks the value.
@@ -708,19 +714,17 @@ function nameAndPictureFinder(cheerio) {
 
     nameBefore.sort((a, b) => a.length - b.length);
 
-    if (nameBefore.length == 1) {
-        nameBefore[0].forEach((obj) => {
-            name.push(`${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
-        });
-    }
-    else if (nameBefore.length == 2) {
-        nameBefore[0].forEach((obj) => {
+
+    nameBefore[0].forEach((obj) => {
+        try {
             nameBefore[1].forEach((element) => {
                 name.push(`\(${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}\) ${element.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
             });
-        });
-    }
-    //console.log(diffRows.find('ul:nth-child(0) > li'));
+        } catch(err) {
+            name.push(`${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
+        }
+    });
+        //console.log(diffRows.find('ul:nth-child(0) > li'));
         //console.log(diffRows.find('ul:nth-child(1) > li'));
 
 
