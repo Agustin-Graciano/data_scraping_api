@@ -9,8 +9,8 @@ const fs = require("fs");
 const sql = require("mssql");
 const app = express();
 
-const tableName1 = "JHElectronica";
-const tableName2 = "JHVariations";
+const tableName1 = "Products";
+const tableName2 = "ProductVariations";
 const primaryKey = "ProductIndex";
 
 var scrapedData = [];
@@ -35,11 +35,12 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 var config = {
-    user: 'CloudSAe3bf2b26',
-    password: 'tkbjVLaMnR4Mn2f',
-    server: 'testofmagicandmysticalnicoladsdb.database.windows.net',
-    database: 'TestDatabase',
-    connectionTimeout: 60000
+    user: 'SA',
+    password: 'EBBase2Data',
+    server: '65.109.137.46',
+    database: 'master',
+    connectionTimeout: 60000,
+    trustServerCertificate: true
 };
 
 sql.on('error',
@@ -330,6 +331,7 @@ function UploadJsonFile() {
     let jsonFileRead = fs.readFileSync(`scrapedData.json`);
     let parsedFile = JSON.parse(jsonFileRead);
     sendMultipleProducts(parsedFile.Products, tableName1);
+    console.log("Finished uploading JSON to target database table.");
 }
 
 //ScrapesJHElectronica and returns all the products names, prices, picturelinks and productlinks in an array, that gets converted to Json.
@@ -427,9 +429,10 @@ const scrapeJHElectronicaToJSON = async () => {
 /* scrapeGoogleSearch(); */
 //Made just to have an async handler, for when get /api.
 async function asyncRunner(res) {
-    if (!scrapedData) {
+    if (scrapedData.length == 0) {
         //sets scrapedData to be an array of all the products in the database.
         scrapedData = await getAllProducts();
+        console.log("Set scraped data to an array with length: " + scrapedData.length);
     }
     res.json(scrapedData);
 }

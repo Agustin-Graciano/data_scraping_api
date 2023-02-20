@@ -49,8 +49,8 @@ function App() {
             .then((response) => response.json())
             .then((data) => {
                 setData(data);
-                //console.log(data.length);
-                //console.log(data);
+                console.log(data.length);
+                console.log(data);
             });
           };
           fetchData();
