@@ -45,7 +45,7 @@ function App() {
     //Getting the scraped data from the server side
       if (FirstBoot) {
           const fetchData = async () => {
-          await fetch("http://localhost:5000/api")
+          await fetch("http://65.109.137.46:5000/api")
             .then((response) => response.json())
             .then((data) => {
                 setData(data);
@@ -73,7 +73,7 @@ function App() {
       }
       //console.log(price);
       if (setMinDays(formDate, minDaysDelivery)) {
-        fetch("http://localhost:5000/pyth", {
+        fetch("http://65.109.137.46:5000/pyth", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

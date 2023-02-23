@@ -51,10 +51,8 @@ def CalculatedSalesPrice(Price, Profit):
 #Evaluates whether the string expression passed through is equal to "true", and sends a boolean set to true back if so. Anything else gets the boolean returned as False.
 def CheckTrueOrFalse(Boolean):
     if(Boolean.lower() == "true"):
-        Result = True
-        return Result
-    Result = False
-    return Result
+        return True
+    return False
 
 def CalcOutsideEbitsInsideEU(TotalPriceBeforeCalc, Amount, ExchangeCurrencyStr):
     PricePer = PricePerItem(TotalPriceBeforeCalc, Amount)

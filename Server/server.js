@@ -1,19 +1,19 @@
 ﻿const express = require("express");
 const bodyParser = require("body-parser");
-const puppeteer = require("puppeteer");
 const cors = require("cors");
 const spawn = require("child_process").spawn;
 const unirest = require("unirest");
 const cheerio = require("cheerio");
 const fs = require("fs");
 const sql = require("mssql");
-const app = express();
+const readline = require('readline');
 
+const app = express();
 const tableName1 = "Products";
 const tableName2 = "ProductVariations";
 const primaryKey = "ProductIndex";
-
 var scrapedData = [];
+var scrapedDataShort = [];
 
 app.use(
     cors({
@@ -37,7 +37,10 @@ app.use(express.json());
 var config = {
     user: 'SA',
     password: 'EBBase2Data',
-    server: '65.109.137.46',
+    server: '172.18.0.2',
+    //server 172.18.0.2 for local sql on hetzner.
+    //server V + 65.109.137.46 for unlocal sqltest on hetzner.
+    //port: 1435,
     database: 'master',
     connectionTimeout: 60000,
     trustServerCertificate: true
@@ -46,7 +49,8 @@ var config = {
 sql.on('error',
     err => { // Connection broken.
         console.log(err.message);
-    });
+    }
+);
 
 //Receives all products from the database.
 async function getAllProducts() {
@@ -166,14 +170,15 @@ async function sendMultiProductsPart(objArray, tableName) {
 }
 
 async function sendMultipleProducts(objArray, tableName) {
-    await deleteAllProducts(tableName);
+    var arr = await objArray;
 
     var objArrayArray = [];
     var lengths = 0;
     var currentLength = 0;
     var arrayNum = 0;
     var lastArrayNum = 0;
-    await objArray.forEach((obj, i) => {
+    
+    await arr.forEach((obj, i) => {
         if (tableName == tableName2) {
             currentLength = obj[1].length;
         }
@@ -188,15 +193,16 @@ async function sendMultipleProducts(objArray, tableName) {
         if (lengths >= 600) {
             lengths = currentLength;
             arrayNum -= 1;
-            objArrayArray.push(objArray.slice(lastArrayNum, arrayNum));
+            objArrayArray.push(arr.slice(lastArrayNum, arrayNum));
             lastArrayNum = arrayNum;
         }
     });
 
-    objArrayArray.push(objArray.slice(lastArrayNum, objArray.length));
+    objArrayArray.push(arr.slice(lastArrayNum, arr.length));
     //console.log("Below is all the records.");
     //console.log(objArrayArray);
-    
+    await deleteAllProducts(tableName);
+
     await sendMultiProductsPart(objArrayArray, tableName);
     //console.log("debuggy: " + objArrayArray[0][0] + objArrayArray[1][0] + objArrayArray[2][0] + objArrayArray[3][0]);
 }
@@ -213,101 +219,6 @@ async function deleteAllProducts(tableName) {
     }
     scrapedData = [];
 }
-
-//getAllProducts();
-//getSpecificProductByID(2);
-//let testObject = { ProductName: "TestProductAgainDiff", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
-//let testObject2 = { ProductName: "TestProductAgain", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
-//let testObject3 = { ProductName: "TestProductDiff", Price: "$0.10", PictureLink: "five", ProductLink: "sixteen" };
-//let testList = [testObject, testObject2, testObject3];
-//sendMultipleProducts(testList);
-//getPrimaryKeys();
-
-
-
-//<== | Data scraping
-
-// const scrapeFunction = async (url) => {
-//   try {
-//     const browser = await puppeteer.launch();
-//     const page = await browser.newPage();
-//     await page.goto(url);
-
-//     const productHeading = await page.waitForSelector(".product-meta__title");
-//     /*
-//     const [productHeading] = await page.$(
-//       '//*[@id="shopify-section-product-template"]/section/div/div[1]/div/div[1]/div/div[1]/div/h1'
-//     );
-//     */
-
-//     const innerTxt = await productHeading.getProperty("textContent");
-
-//     const headingTxt = await innerTxt.jsonValue();
-//     scrapedData = headingTxt;
-
-//     browser.close();
-//   } catch (e) {
-//     console.error("The scraping was deprecated because of", e);
-//   }
-// };
-// console.log(scrapedData);
-
-// scrapeFunction(
-//   "https://ebits.dk/collections/mikrokontrollere/products/arduino-nano-r3"
-// );
-
-// const searchScraping = async () => {
-//   try {
-//     //Launchin puppeteer
-//     const browser = await puppeteer.launch({
-//       args: [
-//         "--no-sandbox",
-//         "--headless",
-//         "--disable-gpu",
-//         "--window-size=1920x1080",
-//       ],
-//     });
-//     const page = await browser.newPage();
-//     await page.setRequestInterception(true);
-//     page.on("request", (interSeptedRequest) => {
-//       //Still not sure if it is okay to be "!==" instead of "==="
-//       interSeptedRequest.resourceType !== "document"
-//         ? interSeptedRequest.abort()
-//         : interSeptedRequest.continue();
-//     });
-//     //Setting the user agent to be custom, so the google server does not kick me due to using a headless browser
-//     await page.setUserAgent(
-//       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3419.0 Safari/537.36"
-//     );
-//     //Assigning the location the page is supposed to go to
-//     await page.goto(
-//       "https://www.banggood.com/?utm_source=google&utm_medium=cpc_brand&utm_content=all&utm_campaign=aceng-skw-ads-eu-bg-rsa&ad_id=343808804361&gclid=Cj0KCQiA8aOeBhCWARIsANRFrQHxlVfwJXuguVvWFuIrt8TbpIVoQavek9HRFY-10SVEvlF2jIv-PJ4aAvDPEALw_wcB",
-//       { waitUntil: "networkidle2" }
-//     );
-//     //Waiting for the search bar on the page to load and get in visability
-//     await page.waitForSelector('input[aria-label="Search"]', { visable: true });
-//     //Targetinng an element with the "type" method and specifying what to type in
-//     await page.type('input[aria-label="Search"]', "Ali express");
-//     await Promise.all([
-//       page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-//       page.keyboard.press("Enter"),
-//     ]);
-//     //waiting untill the needed element (in this case the search results are visible)
-//     await page.waitForSelector(".LC20lb", { visible: true });
-
-//     const scrappedResult = await page.$$eval(".LC20lb", (els) =>
-//       els.map((e) => ({ title: e.innerText, link: e.parentNode.href }))
-//     );
-//     console.log(scrappedResult);
-//     scrapedData = scrappedResult;
-//     browser.close();
-//   } catch (e) {
-//     console.error("the search scrape failed due to:", e);
-//     console.log("the search scrape failed due to", e);
-//   }
-// };
-
-// searchScraping();
 
 const selectRandom = () => {
   //An array with different user agents
@@ -333,9 +244,7 @@ function UploadJsonFile() {
     sendMultipleProducts(parsedFile.Products, tableName1);
     console.log("Finished uploading JSON to target database table.");
 }
-
-//ScrapesJHElectronica and returns all the products names, prices, picturelinks and productlinks in an array, that gets converted to Json.
-const scrapeJHElectronicaToJSON = async () => {
+async function scrapeJHElectronica() {
     return unirest
         .get("https://www.jh-electronica.com/ProductList.aspx?mode=&per=1&sj=&ej=&keys=")
         .headers({
@@ -345,13 +254,13 @@ const scrapeJHElectronicaToJSON = async () => {
             let cheers = cheerio.load(response.body);
             let amountOfProductsToScrape = cheers('div[class="f16 fb sm-12"] > span').text();
             console.log("Discovered this amount of products to scrape: ", amountOfProductsToScrape);
+            console.log("Scraping starting, please hold.");
             return unirest
                 .get(`https://www.jh-electronica.com/ProductList.aspx?mode=&per=${amountOfProductsToScrape}&sj=&ej=&keys=`)
                 .headers({
                     UserAgent: `${user_agent}`
                 })
                 .then((response) => {
-                    console.log("Scraping start, please hold.");
                     let $ = cheerio.load(response.body);
                     let titles = [];
                     let prices = [];
@@ -370,71 +279,61 @@ const scrapeJHElectronicaToJSON = async () => {
                                 "https://www.jh-electronica.com" + $(element).attr("href");
                         });
 
-                    /*
-                    $("em .tac .fb .db .mt5").each((i, el) => {
-                      prices[i] = $(el).text();
-                    });
-              
-                    $(".h-car1-item  .els2").each((i, el) => {
-                      titles[i] = $(el).text();
-                    });
-              
-                    $("li .pic .po-auto").each((i, el) => {
-                      pictures[i] = $(el).attr("src");
-                    });
-                    */
-
                     var results = [];
                     for (let i = 0; i < titles.length; i++) {
-                        results[i] = {
+                        results.push({
                             ProductIndex: i + 1,
-                            ProductName: titles[i].replace(/\s+/g, " ").trim().replace(/\"/g, '\"\"').replace(/\'/g, "\'\'"),
+                            ProductName: titles[i].replace(/\s+/g, " ").trim().replace(/\"/g, '\"\"')
+                                .replace(/\'/g, "\'\'"),
                             Price: prices[i],
                             PictureLink: pictures[i],
                             ProductLink: link[i]
-                        };
+                        });
                     }
 
-                    console.log(results);
                     console.log("Number of products obtained: " + results.length);
-
-                    var translateIntoJson = (arrToFile) => {
-                        if (arrToFile.length !== 0) {
-                            let jhElectronicaProductObject = {
-                                Products: arrToFile,
-                            };
-                            fs.writeFile(
-                                "./scrapedData.json",
-                                JSON.stringify(jhElectronicaProductObject, null, 2),
-                                (err) => {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        console.log("file successfully created");
-                                    }
-                                }
-                            );
-                        } else {
-                            console.log("Action impossible due to lack of information");
-                        }
-                    };
-                    translateIntoJson(results);
+                    return results;
                 });
         });
+}
+//ScrapesJHElectronica and returns all the products names, prices, picturelinks and productlinks in an array, that gets converted to Json.
+async function scrapeJHElectronicaToJSON() {
+    var results = await scrapeJHElectronica();
+    var translateIntoJson = (arrToFile) => {
+        if (arrToFile.length !== 0) {
+            let jhElectronicaProductObject = {
+                Products: arrToFile
+            };
+            fs.writeFile(
+                "./scrapedData.json",
+                JSON.stringify(jhElectronicaProductObject, null, 2),
+                (err) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log("file successfully created");
+                    }
+                }
+            );
+        } else {
+            console.log("Action impossible due to lack of information");
+        }
+    };
+    translateIntoJson(results);
 };
+async function scrapeJHElectronicaToDatabase() {
+    sendMultipleProducts(await scrapeJHElectronica(), tableName1);
+    console.log("Scraping and uploading results to the database.");
+}
 
-
-//scrapeJHElectronica();
-//scrapeJHElectronicaToJSON();
-/* scrapeGoogleSearch(); */
-//Made just to have an async handler, for when get /api.
-async function asyncRunner(res) {
-    if (scrapedData.length == 0) {
+//Made just to have an async handler, for when a get request is sent to /api.
+async function asyncRunner() {
+    if (!scrapedData || scrapedData.length == 0) {
         //sets scrapedData to be an array of all the products in the database.
+        //Additionally, scrapedDataShort is the same as scrapedData, but without Price and ProductLink (since the client doesn't need to show these)
         scrapedData = await getAllProducts();
-        console.log("Set scraped data to an array with length: " + scrapedData.length);
+        scrapedDataShort = scrapedData.map(({ Price, ProductLink, ...remainingAttrs }) => remainingAttrs);
     }
-    res.json(scrapedData);
 }
 
 //Calls the function to check whether the product has variations, and then scrapes all relevant variation data. 
@@ -465,7 +364,6 @@ async function doVariationScrape(link) {
                 allMatches.push(pricematches);
                 nameAndPictureFinder($).forEach((elem) => allMatches.push(elem));
                 return allMatches;
-                //FinalResults.push(allMatches);
             }
             return null;
         });
@@ -474,8 +372,6 @@ async function doVariationScrape(link) {
 async function variationScraper(objectArray) {
     let amountOfObjectsSentAtATime = 6;
     let finalResults = [];
-    //This is some important stuff, but not for right now.
-        
     while (objectArray.length > 0) {
         var smallerArray = [];
         if (objectArray.length > amountOfObjectsSentAtATime) {
@@ -525,19 +421,6 @@ async function variationScraper(objectArray) {
             //setTimeout(resolve, 2000);
         //});
     }
-    
-
-    //console.log(finalResults.length);
-    //console.log("WHAAAAAAAAAAT: ");
-    //finalResults.forEach((obj) => {
-        //console.log(obj[1].length);
-    //});
-
-    /*
-    let jsonFileRead = fs.readFileSync(`ScrapedVariations.json`);
-    let parsedFile = JSON.parse(jsonFileRead);
-    return parsedFile;
-    */
 
     return finalResults;
 }
@@ -546,18 +429,12 @@ async function variationScraper(objectArray) {
 function nameAndPictureFinder(cheerio) {
     let allResults = [];
     let diffRows = cheerio('[class="goodsspectable mb20"]');
-    //let row = cheerio('[class="row tac"] > li');
-    //let pictures = row.find('img').attr("src");
-    //let name = row.find('a[class="db"]').text();
     var name = [];
 
     let nameBefore = [...diffRows.find('ul[class="row tac"]')].map(e => 
         [...cheerio(e).find("li")].map(e => cheerio(e).find('img').attr("title") ? cheerio(e).find('img').attr("title").trim() : cheerio(e).text().trim())
     );
-
-    //console.log(nameBefore[0]/*.includes("")*/);
-    //console.log(nameBefore[1]/*.includes("")*/);
-    //console.log(nameBefore[0]);
+    
 
     nameBefore.sort((a, b) => a.length - b.length);
 
@@ -571,8 +448,6 @@ function nameAndPictureFinder(cheerio) {
             name.push(`${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
         }
     });
-        //console.log(diffRows.find('ul:nth-child(0) > li'));
-        //console.log(diffRows.find('ul:nth-child(1) > li'));
 
 
     let pictures = diffRows.find('[class="row tac"] > li').map(function () {
@@ -594,7 +469,6 @@ function nameAndPictureFinder(cheerio) {
 function variationFinder(dataBlock) {
     let keysmatches = dataBlock.match(/(?<=keys = \[)[^\]]+\]/g);
     if (keysmatches) {
-        //let keysmatchessplit = keysmatches[0].match(/(?<=\')[^\',]+(?=\')/g);
         return true;
     }
     return false;
@@ -628,93 +502,118 @@ async function getIndexAndProductLink() {
 async function variationGetter() {
 
     let allIndexandProdLinks = await getIndexAndProductLink();
-    //let tester = [];
-
-    //for (i = 0; i < 200; i++) {
-        //tester.push(allIndexandProdLinks[i]);
-    //}
-    //for (i = 155; i < 175; i++) {
-        //tester.push(allIndexandProdLinks[i]);
-    //}
-    //tester.push(allIndexandProdLinks[155]);
-    //tester.push(allIndexandProdLinks[156]);
-    //tester.push(allIndexandProdLinks[157]);
-    //tester.push(allIndexandProdLinks[158]);
-    //tester.push(allIndexandProdLinks[159]);
-
-    //console.log(typeof tester[0].ProductLink);
 
     let obtainVariationsData = await variationScraper(allIndexandProdLinks);
-    
-    /*
-    fs.writeFile(
-        "./ScrapedVariations.json",
-        JSON.stringify(obtainVariationsData, null, 2),
-        (err) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log("file successfully created");
-            }
-        }
-    );
-    */
+
     return obtainVariationsData;
 }
 
 async function GetandSetDatabaseVariation() {
     console.time('GetAndSetDatabaseVariation Completed in');
     let variationData = await variationGetter();
-    await sendMultipleProducts(variationData, tableName2);
-    console.log("Sent following amount of products, that have variations: " + variationData.length);
-    console.timeEnd('GetAndSetDatabaseVariation Completed in');
+    await sendMultipleProducts(variationData, tableName2).then(() => {
+        console.log("Sent following amount of products, that have variations: " + variationData.length);
+        console.timeEnd('GetAndSetDatabaseVariation Completed in');
+    });
 }
 
 //Making the API request/response
 app.get("/api", (req, res) => {
-    asyncRunner(res);
+    asyncRunner();
+    res.json(scrapedDataShort);
 });
 
 //Connection to python
-app.post("/pyth", (req, res, next) => {
-  var price = Number(req.body.Price);
-  var amount = Number(req.body.Amount);
-  var currency = String(req.body.Currency);
-  var outsideEbits = String(req.body.OutsideEbits);
-  var outsideEU = String(req.body.OutsideEU);
-  var dateToBeDelivered = String(req.body.Date);
-  var dataToSend = String();
-  console.log(req.body);
+app.post("/pyth", (req, res) => {
+  asyncRunner().then(() => {
+      var dataToSend = String();
+      var dataNoFormatting = String();
 
-  const python3 = spawn("python", [
-    "Calculator.py",
-    price,
-    amount,
-    currency,
-    outsideEbits,
-    outsideEU,
-    dateToBeDelivered
-  ]);
-  python3.stdout.on("data", function (data) {
-    dataToSend = data.toString();
-    const formatter = new Intl.NumberFormat("dk-DK", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    dataToSend = formatter.format(dataToSend);
-    console.log(`Results: ${dataToSend}`);
+      //console.log(req.body);
+      try {
+          var price = scrapedData[req.body.ProductIndex - 1].Price;
+          var priceNoSymbol = Number(price.slice(1));
+          //var priceSymbol = price.slice(0, 1);
+          const python3 = spawn("python3",
+              [
+                  "Calculator.py",
+                  priceNoSymbol,
+                  Number(req.body.Amount),
+                  "USD",
+                  "true",
+                  "true",
+                  String(req.body.Date)
+              ]);
+          python3.stdout.on("data",
+              function (data) {
+                  dataToSend = data.toString();
+                  dataNoFormatting = dataToSend;
+                  const formatter = new Intl.NumberFormat("dk-DK",
+                      {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                      });
+                  dataToSend = formatter.format(dataToSend);
+                  console.log(`Requested: ${dataToSend}`);
+              });
+          // in close event we are sure that stream from child process is closed
+          python3.on("close", (code) => {
+              // send data to browser
+              //console.log(dataNoFormatting);
+              if (Number(dataNoFormatting)) {
+                  res.end(dataToSend);
+              } else res.end("?");
+          });
+      } catch (err) {
+          console.log(err);
+          res.end("?");
+      }
   });
-
-  // in close event we are sure that stream from child process is closed
-  python3.on("close", (code) => {
-    // send data to browser
-    res.end(dataToSend);
-  });
-});
+}
+);
 
 app.listen(5000, () => {
-  console.log("server started on port 5000");
+    console.log("server started on port 5000");
 });
+
+asyncRunner().then(() => {
+    innerQuestion();
+});
+
+function innerQuestion() {
+    var rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: false});
+    rl.setPrompt("Input command, or ? for a list of commands.\n");
+    rl.prompt();
+    rl.on('line', (query) => {
+        switch (query.trim().toLowerCase()) {
+            case "scrapejhtodb":
+                console.log("Starting Scrape + DB Upload.");
+                rl.pause();
+                scrapeJHElectronicaToDatabase().then(() => {
+                    rl.resume();
+                    rl.prompt();
+                });
+                break;
+            case "scrapejhvariationstodb":
+                console.log("Starting scraping variations + DB Upload, this is gonna take a bit.");
+                rl.pause();
+                GetandSetDatabaseVariation().then(() => {
+                    rl.resume();
+                    rl.prompt();
+                });
+                break;
+            case "?":
+                console.log("Current options are: scrapeJHtoDB and scrapeJHVariationstoDB");
+                break;
+            default:
+                console.log("Input not recognized. Try '?' for a list of commands.");
+        }
+    });
+}
+
+
+// use this V if you want to scrape new data and save it to the database:
+//scrapeJHElectronicaToDatabase();
 
 // use this V if you want to scrape new data and save it to a Json file:
 //scrapeJHElectronicaToJSON();
@@ -724,10 +623,3 @@ app.listen(5000, () => {
 
 // for getting all the database table1s values, and scraping them for variations and putting that result into database table2 V WARNING: Will delete current records, and also will take several hours just to grab the data.
 //GetandSetDatabaseVariation();
-
-
-
-
-
-//scrapeJHElectroPageNumbers(1);
-//scrapeJHElectroPageNumbers(2);
