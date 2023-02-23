@@ -332,7 +332,9 @@ async function asyncRunner() {
         //sets scrapedData to be an array of all the products in the database.
         //Additionally, scrapedDataShort is the same as scrapedData, but without Price and ProductLink (since the client doesn't need to show these)
         scrapedData = await getAllProducts();
-        scrapedDataShort = scrapedData.map(({ Price, ProductLink, ...remainingAttrs }) => remainingAttrs);
+        if (scrapedData || scrapedData.length != 0) {
+            scrapedDataShort = scrapedData.map(({ Price, ProductLink, ...remainingAttrs }) => remainingAttrs);
+        }
     }
 }
 
