@@ -80,29 +80,32 @@ async function getAllProducts(tableName) {
     }
 }
 //receives a specific product from the database based on its index number. 
-function getSpecificProductByID(index, tableName) {
-    index = Number(index);
+function getSpecificProductByID(req, tableName) {
+    let obj;
     if (tableName == tableName1) {
-        let obj = scrapedDataShort.find(prod => prod.ProductIndex === index);
-        return obj;
+        obj = scrapedDataShort.find(prod => prod.ProductIndex === Number(req.body.ProductIndex));
     }
-    let obj = scrapedDataVarShort.filter(prodVar => prodVar.ProductIndex === index);
+    else if (!isNaN(req.body.VariationID)) {
+        obj = scrapedDataVarShort.filter(prodVar => prodVar.ProductIndex === Number(req.body.ProductIndex) &&
+            prodVar.VariationID === Number(req.body.VariationID));
+    } else {
+        obj = scrapedDataVarShort.filter(prodVar => prodVar.ProductIndex === Number(req.body.ProductIndex));
+    }
     return obj;
 
-
-        /*
-        try {
-            let pool = await sql.connect(config);
-            let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${index}`);
-            console.log(`Found following product/s: ${JSON.stringify(result1.recordset, null, 2)}`);
-            sql.close();
-            return result1.recordset;
-        } catch (error) {
-            console.log(error);
-            sql.close();
-            return error;
-        }
-        */
+    /*
+    try {
+        let pool = await sql.connect(config);
+        let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${index}`);
+        console.log(`Found following product/s: ${JSON.stringify(result1.recordset, null, 2)}`);
+        sql.close();
+        return result1.recordset;
+    } catch (error) {
+        console.log(error);
+        sql.close();
+        return error;
+    }
+    */
 }
 
 async function setDescriptions(objArray) {
@@ -581,8 +584,8 @@ app.get("/api", (req, res) => {
 //post a request with a ProductIndex in the body, and retrieve the variations that corresponds to that Product.
 app.post("/apivar", (req, res) => {
     var request = req.body.ProductIndex;
-    if (request) {
-        res.json(getSpecificProductByID(request, tableName2));
+    if (!isNaN(req.body.ProductIndex) && req.body.ProductIndex != 0) {
+        res.json(getSpecificProductByID(req, tableName2));
     } else {
         res.json("?");
     }
@@ -595,14 +598,15 @@ app.post("/pyth", (req, res) => {
 
       //console.log(req.body);
       try {
-          let obj = scrapedDataVar.filter(prodVar => prodVar.ProductIndex === req.body.ProductIndex);
+          let obj = scrapedDataVar.filter(prodVar => prodVar.ProductIndex === Number(req.body.ProductIndex));
+
           var price;
-          if (obj) {
-              price = obj[req.body.VariationIndex - 1].Price;
+          if (obj.length > 0) {
+              price = obj[Number(req.body.VariationID) - 1].Price;
           } else {
-              price = scrapedData[req.body.ProductIndex - 1].Price;
+              price = scrapedData[Number(req.body.ProductIndex) - 1].Price;
           }
-          
+
           var priceNoSymbol = Number(price.slice(1));
           //var priceSymbol = price.slice(0, 1);
           const python3 = spawn("python3",
@@ -629,6 +633,8 @@ app.post("/pyth", (req, res) => {
               });
           // in close event we are sure that stream from child process is closed
           python3.on("close", (code) => {
+              console.log("but this is...");
+              console.log(dataNoFormatting);
               // send data to browser
               //console.log(dataNoFormatting);
               if (Number(dataNoFormatting)) {
