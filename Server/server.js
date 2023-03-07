@@ -568,7 +568,7 @@ async function GetandSetDatabaseVariation() {
     await sendMultipleProducts(variationData, tableName2).then(() => {
         console.log("Sent following amount of products, that have variations: " + variationData.length);
         console.timeEnd('GetAndSetDatabaseVariation Completed in');
-        await asyncRunner();
+        asyncRunner();
     });
 }
 
