@@ -6,23 +6,15 @@ const unirest = require("unirest");
 const cheerio = require("cheerio");
 const fs = require("fs");
 const sql = require("mssql");
-const readline = require('readline');
+const readline = require("readline");
 
 const app = express();
 const tableName1 = "Products";
 const tableName2 = "ProductVariations";
-const primaryKey = "ProductIndex";
 var scrapedData = [];
 var scrapedDataShort = [];
-
-app.use(
-    cors({
-        origin: "*"
-    })
-);
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+var scrapedDataVar = [];
+var scrapedDataVarShort = [];
 
 app.use(
     cors({
@@ -34,17 +26,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
 
+
 var config = {
     user: 'SA',
     password: 'EBBase2Data',
     server: '172.18.0.2',
-    //server 172.18.0.2 for local sql on hetzner.
-    //server V + 65.109.137.46 for unlocal sqltest on hetzner.
+    //server 172.18.0.2 for local sql on Hetzner.
+    //server V + 65.109.137.46 for unlocal sqltest on Hetzner.
     //port: 1435,
-    database: 'master',
+    database: 'JHProducts',
     connectionTimeout: 60000,
     trustServerCertificate: true
 };
+
 
 sql.on('error',
     err => { // Connection broken.
@@ -52,86 +46,87 @@ sql.on('error',
     }
 );
 
-//Receives all products from the database.
-async function getAllProducts() {
+//Writes images to file from img uri.
+var download = async function (uri, filename) {
+    return new Promise(async (resolve) => {
+        unirest.get(uri)
+            .encoding(null) // Added
+            .end(async (res) => {
+                //YES I just resolve any promises that go unfulfilled and try the download again, what of it?
+                if (res.error) {
+                    resolve();
+                    return download(uri, filename);
+                }
+                const data = Buffer.from(res.raw_body);
+                fs.writeFileSync(filename, data, 'binary'); // Modified or fs.writeFileSync(pageName + '.png', data);
+                return resolve();
+            });
+    });
+}
+
+//Receives all records from a specific table in the master database.
+async function getAllProducts(tableName) {
     try {
         let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`select * from ${tableName1}`);
+        let result1 = await pool.request().query(`select * from ${tableName}`);
         sql.close();
-        var array = [];
-        for (var key in result1.recordset) {
-            if (result1.recordset.hasOwnProperty(key)) {
-                var item = result1.recordset[key];
-                array.push({
-                    ProductIndex: item.ProductIndex,
-                    ProductName: item.ProductName,
-                    Price: item.Price,
-                    PictureLink: item.PictureLink,
-                    ProductLink: item.ProductLink
-                });
-            }
-        }
+        let array = result1.recordset;
         console.log(`Found following amount of products: ${array.length}`);
         return array;
     } catch (error) {
         console.log(error);
         sql.close();
-    }
-}
-//receives a specific product from the database based on its productname. 
-async function getSpecificProductByName(productName) {
-    try {
-        let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`select * from ${tableName1} where ProductName = ${productName}`);
-        console.log(`Found following product: ${JSON.stringify(result1.recordset, null, 2)}`);
-        sql.close();
-        return result1.recordset;
-    } catch (error) {
-        console.log(error);
-        sql.close();
-        return error;
+        return null;
     }
 }
 //receives a specific product from the database based on its index number. 
-async function getSpecificProductByID(index, tableName) {
-    try {
-        let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${index}`);
-        console.log(`Found following product/s: ${JSON.stringify(result1.recordset, null, 2)}`);
-        sql.close();
-        return result1.recordset;
-    } catch (error) {
-        console.log(error);
-        sql.close();
-        return error;
+function getSpecificProductByID(index, tableName) {
+    index = Number(index);
+    if (tableName == tableName1) {
+        let obj = scrapedDataShort.find(prod => prod.ProductIndex === index);
+        return obj;
     }
-}
-//sends an obj and its index number and sets it in the database. TODO: make it update the record in the database if it already exists (based on index, index is primary key.)
-async function sendProduct(obj) {
-    obj.ProductIndex = `\'${obj.ProductIndex}\'`;
-    obj.ProductName = `\'${obj.ProductName}\'`;
-    obj.Price = `\'${obj.Price}\'`;
-    obj.PictureLink = `\'${obj.PictureLink}\'`;
-    obj.ProductLink = `\'${obj.ProductLink}\'`;
-    try {
-        let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`insert into ${tableName1} values(${obj.ProductIndex}, ${obj.ProductName}, ${obj.Price}, N${obj.PictureLink}, N${obj.ProductLink})`);
-        console.log(result1);
-        sql.close();
-    } catch (error) {
-        console.log(error);
-        sql.close();
-    }
-    scrapedData = [];
+    let obj = scrapedDataVarShort.filter(prodVar => prodVar.ProductIndex === index);
+    return obj;
+
+
+        /*
+        try {
+            let pool = await sql.connect(config);
+            let result1 = await pool.request().query(`select * from ${tableName} where ProductIndex = ${index}`);
+            console.log(`Found following product/s: ${JSON.stringify(result1.recordset, null, 2)}`);
+            sql.close();
+            return result1.recordset;
+        } catch (error) {
+            console.log(error);
+            sql.close();
+            return error;
+        }
+        */
 }
 
-async function getPrimaryKeys() {
+async function setDescriptions(objArray) {
+    var arr = objArray;
+    var splitterArr = [];
+    var updaterArr = [];
+    while (arr.length > 0) {
+        splitterArr.push(arr.splice(0, 500));
+    }
+    for (var i = 0; i < splitterArr.length; i++) {
+        let updater = `UPDATE e SET Description = t.Description FROM dbo.${tableName1} e JOIN (VALUES`;
+        for (var j = 0; j < splitterArr[i].length; j++) {
+            updater += `\(${splitterArr[i][j][0]}, \'${splitterArr[i][j][1].slice(0, 7999)}\'\),`;
+        }
+        updater = updater.slice(0, -1);
+        updater += `) t (ProductIndex, Description) ON t.ProductIndex = e.ProductIndex`;
+        await updaterArr.push(updater);
+    }
     try {
         let pool = await sql.connect(config);
-        let result1 = await pool.request().query(`select ${primaryKey} from ${tableName1}`);
-        console.log(result1.recordset);
+        for (const updater of updaterArr) {
+            await pool.request().query(updater);
+        }
         sql.close();
-        return result1;
     } catch (error) {
         console.log(error);
         sql.close();
@@ -143,10 +138,10 @@ async function sendMultiProductsPart(objArray, tableName) {
     objArray.forEach(async (arr) => {
         let inserter = `insert into ${tableName} values `;
         if (tableName == tableName1) {
-            arr.forEach((element, index) => inserter += (`\(${element.ProductIndex}, \'${element.ProductName}\', \'${element.Price}\', N\'${element.PictureLink}\', N\'${element.ProductLink}\'\), `));
+            arr.forEach((element, index) => inserter += (`\(${element.ProductIndex}, \'${element.ProductName}\', \'${element.Price}\', N\'${null}\', N\'${element.ProductLink}\'\), `));
         }
         else if (tableName == tableName2) {
-            arr.forEach((element, index) => element[1].forEach((elem, ind) => inserter += (`\(${element[0]}, \'${ind + 1}\', N\'${element[2][ind]}\', \'${elem}\', ${element[3][ind] ? "N\'" + element[3][ind] + "\'" : "NULL"}\), `)));
+            arr.forEach((element, index) => element[1].forEach((elem, ind) => inserter += (`\(${element[0]}, \'${ind + 1}\', N\'${element[2][ind]}\', \'${elem}\'\), `)));
         }
         inserter = inserter.substring(0, inserter.length - 2) + '\;';
         inserterArr.push(inserter);
@@ -162,11 +157,16 @@ async function sendMultiProductsPart(objArray, tableName) {
             await pool.request().query(inserter);
         }
         sql.close();
+        if (tableName == tableName1) {
+            scrapedData = [];
+        }
+        else {
+            scrapedDataVar = [];
+        }
     } catch (error) {
         console.log(error);
         sql.close();
     }
-    scrapedData = [];
 }
 
 async function sendMultipleProducts(objArray, tableName) {
@@ -188,7 +188,7 @@ async function sendMultipleProducts(objArray, tableName) {
 
         arrayNum = i;
         lengths += currentLength;
-        //cap of 1000 rows per insert statement. Set to 600 instead, because my function wrongly saves a value to be used for the next one, where it appends something before it checks the value.
+        //cap of 1000 rows per insert statement. Set to 600 instead, because this wrongly saves a value to be used for the next one, where it appends something before it checks the value.
         //I think, atleast.
         if (lengths >= 600) {
             lengths = currentLength;
@@ -199,25 +199,26 @@ async function sendMultipleProducts(objArray, tableName) {
     });
 
     objArrayArray.push(arr.slice(lastArrayNum, arr.length));
+
     //console.log("Below is all the records.");
     //console.log(objArrayArray);
     await deleteAllProducts(tableName);
 
     await sendMultiProductsPart(objArrayArray, tableName);
-    //console.log("debuggy: " + objArrayArray[0][0] + objArrayArray[1][0] + objArrayArray[2][0] + objArrayArray[3][0]);
+    
 }
 
 async function deleteAllProducts(tableName) {
     try {
         let pool = await sql.connect(config);
         let result1 = await pool.request().query(`truncate table ${tableName}`);
-        console.log(result1);
+        console.log("Successfully deleted all products from table: ", tableName);
+        //console.log(result1);
         sql.close();
     } catch (error) {
         console.log(error);
         sql.close();
     }
-    scrapedData = [];
 }
 
 const selectRandom = () => {
@@ -264,16 +265,12 @@ async function scrapeJHElectronica() {
                     let $ = cheerio.load(response.body);
                     let titles = [];
                     let prices = [];
-                    let pictures = [];
                     let link = [];
 
                     $('ul[class="row"]')
                         .find("li > div > div > a")
                         .each(function (index, element) {
                             titles[index] = $(element).find("h3").text();
-                            pictures[index] =
-                                "https://www.jh-electronica.com" +
-                                $(element).find("div > img").attr("src");
                             prices[index] = $(element).find("div > em").text();
                             link[index] =
                                 "https://www.jh-electronica.com" + $(element).attr("href");
@@ -286,7 +283,7 @@ async function scrapeJHElectronica() {
                             ProductName: titles[i].replace(/\s+/g, " ").trim().replace(/\"/g, '\"\"')
                                 .replace(/\'/g, "\'\'"),
                             Price: prices[i],
-                            PictureLink: pictures[i],
+                            PictureLink: null,
                             ProductLink: link[i]
                         });
                     }
@@ -322,8 +319,10 @@ async function scrapeJHElectronicaToJSON() {
     translateIntoJson(results);
 };
 async function scrapeJHElectronicaToDatabase() {
-    sendMultipleProducts(await scrapeJHElectronica(), tableName1);
     console.log("Scraping and uploading results to the database.");
+    await sendMultipleProducts(await scrapeJHElectronica(), tableName1);
+    console.log("Successfully uploaded all scraped Products to the database.");
+    await asyncRunner();
 }
 
 //Made just to have an async handler, for when a get request is sent to /api.
@@ -331,32 +330,46 @@ async function asyncRunner() {
     if (!scrapedData || scrapedData.length == 0) {
         //sets scrapedData to be an array of all the products in the database.
         //Additionally, scrapedDataShort is the same as scrapedData, but without Price and ProductLink (since the client doesn't need to show these)
-        scrapedData = await getAllProducts();
-        if (scrapedData || scrapedData.length != 0) {
+        scrapedData = await getAllProducts(tableName1);
+        if (scrapedData || scrapedData != null) {
             scrapedDataShort = scrapedData.map(({ Price, ProductLink, ...remainingAttrs }) => remainingAttrs);
+            scrapedDataVar = await getAllProducts(tableName2);
+            if (scrapedDataVar || scrapedDataVar != null) {
+                scrapedDataVarShort = scrapedDataVar.map(({ Price, ...remainingAttrs }) => remainingAttrs);
+            }
+        }
+    } else {
+        if (!scrapedDataVar || scrapedDataVar.length == 0) {
+            scrapedDataVar = await getAllProducts(tableName2);
+            if (scrapedDataVar || scrapedDataVar != null) {
+                scrapedDataVarShort = scrapedDataVar.map(({ Price, ...remainingAttrs }) => remainingAttrs);
+            }
         }
     }
 }
 
 //Calls the function to check whether the product has variations, and then scrapes all relevant variation data. 
-//returns either an array containing the different relevant values: [productindex], [price], [name], [picturelink], or returns null if no variations are found.
-async function doVariationScrape(link) {
+//returns either an array containing the different relevant values: [ProductIndex], [Price], [Name], [PictureLink], or returns null if no variations are found.
+async function doVariationScrape(obj) {
     return unirest
-        .get(`${link}`)
+        .get(`${obj.ProductLink}`)
         .headers({
             UserAgent: `${user_agent}`
         })
-        .then((response) => {
+        .then(async (response) => {
+            var allMatches = [];
             if (typeof response.body == "undefined") {
-                console.log("Received empty body. Retrying...");
-                return doVariationScrape(link);
+                //console.log("Received empty body. Retrying...");
+                return doVariationScrape(obj);
             }
             var $ = cheerio.load(response.body);
             var entireDataBlock = $('div[class="infos baf pt25 pb35 pl25 pr25"]').find('script[type="text/javascript"]')
                 .text();
-            
+
+            pictureDownload($, obj.ProductIndex);
+            var desc = await descriptionFinder($);
+            allMatches.push(desc);
             if (variationFinder(entireDataBlock)) {
-                var allMatches = [];
                 var pricematches = entireDataBlock.match(/(?<=price: )[^,]+/g);
                 pricematches.forEach((item, ind) => {
                     item = "$" + item;
@@ -364,16 +377,61 @@ async function doVariationScrape(link) {
                 });
                 
                 allMatches.push(pricematches);
-                nameAndPictureFinder($).forEach((elem) => allMatches.push(elem));
-                return allMatches;
+                allMatches.push(nameFinder($));
             }
-            return null;
+            return allMatches;
         });
+}
+
+async function descriptionFinder(cheerio) {
+    let description;
+    try {
+        description = cheerio('div[class="li25 mt20"]').text().replace(/\s+/g, " ").replace(/\"/g, '\"\"')
+            .replace(/\'/g, "\'\'").match(/.*(?=package type|package include:)/i)[0].trim();
+        if (description.length == 0) {
+            description = cheerio('div[class="li25 mt20"]').text().replace(/\s+/g, " ").replace(/\"/g, '\"\"')
+                .replace(/\'/g, "\'\'").match(/package included:.*(?=We don''t support online payment.)/i)[0].trim();
+            console.log(description);
+        }
+    }
+    catch (err) {
+        description = "";
+    }
+    return description;
+}
+
+async function pictureDownload(cheerio, productIndex) {
+    let pictures = cheerio('ul[class="t-slider sliders fr sm-12"] > li').map(function () {
+        return encodeURI(cheerio(this).find('img').attr("src"));
+    }).toArray();
+    let pictures2 = cheerio('[class="goodsspectable mb20"]').find('img').map(function () {
+        return encodeURI(cheerio(this).attr("src"));
+    }).toArray();
+
+    var base = "https://www.jh-electronica.com";
+
+    //pictures = [...new Set(pictures)];
+    await pictures;
+    await pictures2;
+
+    for (var i = 0; i < pictures.length; i++) {
+        await download(base + pictures[i], "./img/" + productIndex + "_" + i + pictures[i].substring(pictures[i].lastIndexOf('.'))).then(
+            () => { });
+        //console.log("This is but a little resistance...");
+    }
+
+    for (var j = 0; j < pictures2.length; j++) {
+        await download(base + pictures2[j], "./img/" + productIndex + "-" + j + pictures2[j].substring(pictures2[j].lastIndexOf('.'))).then(
+            () => { });
+        //console.log("Now then, entertain me.");
+    }
+
 }
 
 async function variationScraper(objectArray) {
     let amountOfObjectsSentAtATime = 6;
     let finalResults = [];
+    let descriptionResults = [];
     while (objectArray.length > 0) {
         var smallerArray = [];
         if (objectArray.length > amountOfObjectsSentAtATime) {
@@ -386,13 +444,13 @@ async function variationScraper(objectArray) {
         
         await Promise.all(smallerArray.map(async (obj) => {
             //console.log("work through: " + obj.ProductLink);
-            let timeoutTimeMs = 20000;
-            console.log("Waiting for result for product with index: " + obj.ProductIndex);
+            let timeoutTimeMs = 30000;
+            //console.log("Waiting for result for product with index: " + obj.ProductIndex);
             //breaker is a variable used to break the for loop. I couldn't break it inside the .then for the promise, so I had to delegate it like this, even if it does look a little silly.
             let breaker = false;
             for (i = 0; i < 5 * 6; i++) {
                 let result = new Promise((resolve) => {
-                    resolve(doVariationScrape(obj.ProductLink));
+                    resolve(doVariationScrape(obj));
                 });
                 //I needed a variable that wasn't false, because doVariationScrape returns false when a variation isn't found for the specified product.
                 //also it couldn't be true either, as the variable returns true if it is anything not null or false. I chose 1 because... Well, because I did.
@@ -401,7 +459,11 @@ async function variationScraper(objectArray) {
                 });
                 await Promise.race([result, timeout]).then((data) => {
                     if (data != 1) {
-                        if (data) {
+                        let array = [];
+                        array.push(obj.ProductIndex, data.splice(0, 1)[0]);
+                        descriptionResults.push(array);
+                        //console.log(data);
+                        if (data && data.length != 0) {
                             console.log("Variations found for product with index: " + obj.ProductIndex);
                             data.unshift(obj.ProductIndex);
                             finalResults.push(data);
@@ -423,47 +485,36 @@ async function variationScraper(objectArray) {
             //setTimeout(resolve, 2000);
         //});
     }
+    await setDescriptions(descriptionResults);
 
     return finalResults;
 }
 
 //Finds and returns the name and picture link as arrays. An empty array is sent instead, if this value is not found. (e.g. when the variations don't have pictures)
-function nameAndPictureFinder(cheerio) {
-    let allResults = [];
+function nameFinder(cheerio) {
     let diffRows = cheerio('[class="goodsspectable mb20"]');
     var name = [];
 
     let nameBefore = [...diffRows.find('ul[class="row tac"]')].map(e => 
         [...cheerio(e).find("li")].map(e => cheerio(e).find('img').attr("title") ? cheerio(e).find('img').attr("title").trim() : cheerio(e).text().trim())
     );
-    
 
     nameBefore.sort((a, b) => a.length - b.length);
 
-
-    nameBefore[0].forEach((obj) => {
-        try {
+    if (nameBefore.length > 1) {
+        nameBefore[0].forEach((obj) => {
             nameBefore[1].forEach((element) => {
-                name.push(`\(${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}\) ${element.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
+                name.push(`\(${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'").replace('【', '(').replace('】',')')}\) ${element.replace(/\"/g, '\"\"')
+                    .replace(/\'/g, "\'\'").replace('【', '(').replace('】', ')') }`);
             });
-        } catch(err) {
-            name.push(`${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'")}`);
-        }
-    });
-
-
-    let pictures = diffRows.find('[class="row tac"] > li').map(function () {
-        return cheerio(this).find('img').attr("src");
-    }).toArray();
-
-    allResults.push(name);
-    if (pictures.length < name.length && pictures.length != 0) {
-        pictures = name.map((_, i) => pictures[i % pictures.length]);
+        });
+    } else {
+        nameBefore[0].forEach((obj) => {
+            name.push(`${obj.replace(/\"/g, '\"\"').replace(/\'/g, "\'\'").replace('【', '(').replace('】', ')') }`);
+        });
     }
-    if (pictures) {
-        allResults.push(pictures);
-    }
-    return allResults;
+
+    return name;
 }
 
 //Determines whether the provided dataBlock contains variations based on whether there are "keys", id's for variations.
@@ -513,9 +564,11 @@ async function variationGetter() {
 async function GetandSetDatabaseVariation() {
     console.time('GetAndSetDatabaseVariation Completed in');
     let variationData = await variationGetter();
+
     await sendMultipleProducts(variationData, tableName2).then(() => {
         console.log("Sent following amount of products, that have variations: " + variationData.length);
         console.timeEnd('GetAndSetDatabaseVariation Completed in');
+        await asyncRunner();
     });
 }
 
@@ -525,6 +578,15 @@ app.get("/api", (req, res) => {
     res.json(scrapedDataShort);
 });
 
+//post a request with a ProductIndex in the body, and retrieve the variations that corresponds to that Product.
+app.post("/apivar", (req, res) => {
+    var request = req.body.ProductIndex;
+    if (request) {
+        res.json(getSpecificProductByID(request, tableName2));
+    } else {
+        res.json("?");
+    }
+});
 //Connection to python
 app.post("/pyth", (req, res) => {
   asyncRunner().then(() => {
@@ -533,7 +595,14 @@ app.post("/pyth", (req, res) => {
 
       //console.log(req.body);
       try {
-          var price = scrapedData[req.body.ProductIndex - 1].Price;
+          let obj = scrapedDataVar.filter(prodVar => prodVar.ProductIndex === req.body.ProductIndex);
+          var price;
+          if (obj) {
+              price = obj[req.body.VariationIndex - 1].Price;
+          } else {
+              price = scrapedData[req.body.ProductIndex - 1].Price;
+          }
+          
           var priceNoSymbol = Number(price.slice(1));
           //var priceSymbol = price.slice(0, 1);
           const python3 = spawn("python3",
@@ -556,7 +625,7 @@ app.post("/pyth", (req, res) => {
                           maximumFractionDigits: 2
                       });
                   dataToSend = formatter.format(dataToSend);
-                  console.log(`Requested: ${dataToSend}`);
+                  //console.log(`Requested: ${dataToSend}`);
               });
           // in close event we are sure that stream from child process is closed
           python3.on("close", (code) => {
@@ -582,12 +651,41 @@ asyncRunner().then(() => {
     innerQuestion();
 });
 
+function doBoth() {
+    return new Promise((resolve, reject) => {
+        scrapeJHElectronicaToDatabase().then(() => {
+            GetandSetDatabaseVariation().then(() => {
+                resolve();
+            });
+        });
+    });
+}
+
 function innerQuestion() {
     var rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: false});
     rl.setPrompt("Input command, or ? for a list of commands.\n");
     rl.prompt();
     rl.on('line', (query) => {
         switch (query.trim().toLowerCase()) {
+            case "doboth":
+                console.log(
+                    "This function will scrape for everything, set both standard and variations tables, download images...");
+                rl.question('Are you sure this is what you want? It\'s gonna take a monstrous amount of time. \'y\' for yes, send any other key to abort.',
+                    (answer) => {
+                        switch (answer.trim().toLowerCase()) {
+                            case "y":
+                                rl.pause();
+                                doBoth().then(() => {
+                                    console.log("Finished.");
+                                    rl.resume();
+                                    rl.prompt();
+                                });
+                                break;
+                            default:
+                                console.log("Aborted");
+                        }
+                    });
+                break;
             case "scrapejhtodb":
                 console.log("Starting Scrape + DB Upload.");
                 rl.pause();
@@ -597,7 +695,7 @@ function innerQuestion() {
                 });
                 break;
             case "scrapejhvariationstodb":
-                console.log("Starting scraping variations + DB Upload, this is gonna take a bit.");
+                console.log("Starting scraping variations + DB Upload + img download, this is gonna take a bit.");
                 rl.pause();
                 GetandSetDatabaseVariation().then(() => {
                     rl.resume();
@@ -605,7 +703,7 @@ function innerQuestion() {
                 });
                 break;
             case "?":
-                console.log("Current options are: scrapeJHtoDB and scrapeJHVariationstoDB");
+                console.log("Current options are: scrapeJHtoDB, scrapeJHVariationstoDB and doBoth");
                 break;
             default:
                 console.log("Input not recognized. Try '?' for a list of commands.");
@@ -613,6 +711,8 @@ function innerQuestion() {
     });
 }
 
+
+//setDescriptions({ ProductIndex: 1, Description: "Haha, cool." });
 
 // use this V if you want to scrape new data and save it to the database:
 //scrapeJHElectronicaToDatabase();
